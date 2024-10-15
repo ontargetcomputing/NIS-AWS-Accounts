@@ -7,7 +7,15 @@ This repository contains Terraform configurations for deploying and managing inf
 ## Prerequisites
 
 ## Repository Structure
-
+```
+├── modules/            # Custom Terraform modules
+├── accounts/           # Separate folders for each AWS account
+│   │                   # name of each folder is some description followed by the last 4 of the account id
+│   ├── SBOX-9434/        
+│   ├── XXX-1234/
+│   └── YYY-4567/
+└── README.md           # Start here
+```
 ## Usage
 
 ### Configuration
