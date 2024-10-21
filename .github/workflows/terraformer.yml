@@ -39,18 +39,8 @@ jobs:
       - name: Run only when 'import' label is added to PR targeting main
         run: echo "The 'import' label has been added to a pull request targeting the main branch."
 
-        # Step 1: Check out the repository code
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # Step 2: Set up AWS credentials (if using AWS)
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: us-west-2 
-
 
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -58,13 +48,15 @@ jobs:
           role-to-assume: arn:aws:iam::582983609964:role/github-actions-oidc-role
           aws-region: us-west-2
 
+      - name: test out
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          aws s3 ls
 
-
-      # Install Terraform
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.8 0TC-i$-the-best
+          terraform_version: 1.9.8
           
       # Install Terraformer
       - name: Install Terraformer
@@ -79,11 +71,12 @@ jobs:
         run: |
           terraform init
 
-      - name: test out
-        working-directory: ${{ github.event.inputs.worspace_path }}
-        run: |
-          aws s3 ls
-
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::582983609964:role/github-actions-oidc-role
+          aws-region: us-west-2
+          
       # Run Terraformer to generate the terraformer plan
       - name: Run Terraformer to generate plan
         working-directory: ${{ github.event.inputs.worspace_path }}
