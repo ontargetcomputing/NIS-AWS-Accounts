@@ -48,9 +48,11 @@ for resource_type, resources in imported_resources.items():
  
 # exit if any of the resources are missing the name tag.  should be fixed and run again.
 if resources_without_name_tag:
-    print(f"Error: The following resources do not have a Name tag:")
+    print(f"Error: The following resources do not have a 'Name' tag:")
     for resource_name in resources_without_name_tag:
         print(f"  - {resource_name}")
+    
+    print(f"Error: Please ensure each of the above resources has a 'Name' tag and rerun.")
     sys.exit(1)
  
 # output the updated plan json to a new file cooked_plan.json
