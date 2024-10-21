@@ -24,8 +24,8 @@ jobs:
       - name: Install Terraformer
         run: |
           wget https://github.com/GoogleCloudPlatform/terraformer/releases/download/0.8.24/terraformer-all-linux-amd64
-          chmod +x terraformer-linux-amd64
-          sudo mv terraformer-linux-amd64 /usr/local/bin/terraformer
+          chmod +x terraformer-all-linux-amd64
+          sudo mv terraformer-all-linux-amd64 /usr/local/bin/terraformer
 
       # Step 4: Run Terraformer to generate Terraform configuration
           # terraformer import aws --resources=vpc,subnet,ec2 --regions=us-west-1 \
