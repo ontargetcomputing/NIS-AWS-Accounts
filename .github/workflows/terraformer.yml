@@ -78,7 +78,7 @@ jobs:
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           ls
-          
+          cat generated/aws/terraformer/plan.json
       # Step 4: Run Terraformer to generate Terraform configuration
           # terraformer import aws --resources=vpc,subnet,ec2 --regions=us-west-1 \
           # --profile=default --filter="Name=vpc_id;Value=vpc-12345"
