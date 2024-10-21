@@ -1,7 +1,7 @@
 name: Run Terraformer
 
 on:
-  workflow_dispatch: # This allows manually triggering the workflow from GitHub Actions UI
+  
   issues:
     types: [labeled]
 
