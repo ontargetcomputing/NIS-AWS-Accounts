@@ -6,6 +6,10 @@ on:
       worspace_path:
         description: 'The path to the workspace to import into'
         required: true
+        type: choice
+        options:
+          - accounts/SBOX-9394/baseline/baseline-workspace
+          - TODO
       resources:
         description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
         required: true
