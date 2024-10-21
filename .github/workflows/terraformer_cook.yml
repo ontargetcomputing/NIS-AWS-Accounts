@@ -10,7 +10,6 @@ on:
         options:
           - 'Please choose a workspace'
           - accounts/SBOX-9394/baseline/baseline-workspace
-          - TODO
         default: 'Please choose a workspace'
       resources:
         description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
