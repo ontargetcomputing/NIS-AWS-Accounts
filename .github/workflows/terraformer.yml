@@ -82,8 +82,7 @@ jobs:
       
       # Attempt to "cook" the plan - this basically replaces the auto generated resource name given by 
       # Terraformer with the Name tag on the resource.  If no 'Name' tag exists, this will error out.
-      - name: Show Plan
-        working-directory: ${{ github.event.inputs.worspace_path }}
+      - name: Cook Plan
         run: |
           python scripts/cook_plan.py ./accounts/sbox-9394/baseline/baseline-workspace/generated/aws/terraformer/plan.json
 
