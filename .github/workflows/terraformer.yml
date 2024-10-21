@@ -60,7 +60,7 @@ jobs:
           sudo mv terraformer-all-linux-amd64 /usr/local/bin/terraformer
 
       # Run terraform init to setup
-      - name: Run terraform import
+      - name: Run terraform init
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           terraform init
@@ -70,10 +70,15 @@ jobs:
       - name: Run Terraformer to generate plan
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          echo "Running in the import in ${{ github.event.inputs.worspace_path }}"
+          echo "Running in the plan in ${{ github.event.inputs.worspace_path }}"
           terraformer plan aws --resources=${{ github.event.inputs.resources }} --regions=${{ github.event.inputs.aws_region }}
 
-
+      # Run Terraformer to generate the terraformer plan
+      - name: Show directory
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          ls
+          
       # Step 4: Run Terraformer to generate Terraform configuration
           # terraformer import aws --resources=vpc,subnet,ec2 --regions=us-west-1 \
           # --profile=default --filter="Name=vpc_id;Value=vpc-12345"
@@ -94,17 +99,3 @@ jobs:
       #     git push origin main
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # check_for_skipped_workflow:
-  #   # This runs regardless of the previous job outcome.
-  #   runs-on: ubuntu-latest
-  #   needs: terraformer_on_import_label
-  #   if: always()
-  #   steps:
-  #     - name: Check if the previous job was skipped
-  #       run: |
-  #         if [[ "${{ needs.terraformer_on_import_label.result }}" == "skipped" ]]; then
-  #           echo "The workflow was skipped because the 'import' label was not added or the target branch is not 'main'."
-  #         else
-  #           echo "The workflow was run because the 'import' label was added and the target branch was is 'main'."
-  #         fi
