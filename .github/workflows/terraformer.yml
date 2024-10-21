@@ -75,6 +75,7 @@ jobs:
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           echo "Running in the plan in ${{ github.event.inputs.worspace_path }}"
+          set -e
           terraformer plan aws --resources=${{ github.event.inputs.resources }} --regions=${{ github.event.inputs.aws_region }}
         env:
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
