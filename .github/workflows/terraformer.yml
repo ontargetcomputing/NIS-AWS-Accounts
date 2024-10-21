@@ -72,12 +72,14 @@ jobs:
         run: |
           echo "Running in the plan in ${{ github.event.inputs.worspace_path }}"
           terraformer plan aws --resources=${{ github.event.inputs.resources }} --regions=${{ github.event.inputs.aws_region }}
+        env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       # Run Terraformer to generate the terraformer plan
-      - name: Show directory
+      - name: Show Plan
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          ls
           cat generated/aws/terraformer/plan.json
       # Step 4: Run Terraformer to generate Terraform configuration
           # terraformer import aws --resources=vpc,subnet,ec2 --regions=us-west-1 \
