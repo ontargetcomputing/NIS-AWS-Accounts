@@ -1,15 +1,18 @@
-name: Run Terraformer
+name: Run Terraformer Import
 
 on:
   workflow_dispatch: 
     inputs:
+      worspace_path:
+        description: 'The path to the workspace to import into'
+        required: true
+      resources:
+        description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
+        required: true
       aws_region:
-        description: 'The aws region to be imported from'
+        description: 'AWS Region'
         required: true
         default: 'us-west-2'
-      resources:
-        description: 'The resources to import, see https://github.com/GoogleCloudPlatform/terraformer'
-        required: true
 
 jobs:
   terraformer_on_import_label:
@@ -42,7 +45,9 @@ jobs:
           # terraformer import aws --resources=vpc,subnet,ec2 --regions=us-west-1 \
           # --profile=default --filter="Name=vpc_id;Value=vpc-12345"
       - name: Run Terraformer to generate plan
+        working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
+          echo "Running in the import in ${{ github.event.inputs.worspace_path }}"
           terraformer plan aws --resources=${{ github.event.inputs.resources }} --regions=${{ github.event.inputs.aws_region }}
 
 
