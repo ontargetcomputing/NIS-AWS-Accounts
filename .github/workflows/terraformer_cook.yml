@@ -1,4 +1,4 @@
-name: Run Terraformer Import
+name: Run Terraformer Plan and Import
 
 on:
   workflow_dispatch: 
