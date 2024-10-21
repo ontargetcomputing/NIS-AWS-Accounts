@@ -36,22 +36,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Run only when 'import' label is added to PR targeting main
-        run: echo "The 'import' label has been added to a pull request targeting the main branch."
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # TODO - do not hardcode the ROLE ARN
+      # TODO - setup to run against other accounts
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::582983609964:role/github-actions-oidc-role
           aws-region: us-west-2
-
-      - name: test out
-        working-directory: ${{ github.event.inputs.worspace_path }}
-        run: |
-          aws s3 ls
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
@@ -71,13 +65,9 @@ jobs:
         run: |
           terraform init
 
-      - name: Configure AWS credentials using OIDC
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::582983609964:role/github-actions-oidc-role
-          aws-region: us-west-2
-
       # Run Terraformer to generate the terraformer plan
+      # NOTICE the '--profile ""' on the terraformer plan call.  There was an issue when that is not included.
+      # Read https://github.com/GoogleCloudPlatform/terraformer/issues/940 for more info.
       - name: Run Terraformer to generate plan
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
@@ -90,7 +80,12 @@ jobs:
         run: |
           cat generated/aws/terraformer/plan.json
       
-
+      # Attempt to "cook" the plan - this basically replaces the auto generated resource name given by 
+      # Terraformer with the Name tag on the resource.  If no 'Name' tag exists, this will error out.
+      - name: Show Plan
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          python scripts/cook_plan.py ./accounts/sbox-9394/baseline/baseline-workspace/generated/aws/terraformer/plan.json
 
 
       # Step 4: Run Terraformer to generate Terraform configuration
