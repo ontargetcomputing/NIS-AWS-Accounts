@@ -26,6 +26,11 @@ on:
         required: true
         default: 'us-west-2'
 
+# This is necessary for GitHub to request the OIDC token
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   terraformer_on_import_label:
     runs-on: ubuntu-latest
