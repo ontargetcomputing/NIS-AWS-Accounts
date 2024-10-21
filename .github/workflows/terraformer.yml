@@ -76,13 +76,13 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::582983609964:role/github-actions-oidc-role
           aws-region: us-west-2
-          
+
       # Run Terraformer to generate the terraformer plan
       - name: Run Terraformer to generate plan
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           echo "Running in the plan in ${{ github.event.inputs.worspace_path }}"
-          terraformer plan aws --resources=${{ github.event.inputs.resources }} --regions=${{ github.event.inputs.aws_region }}
+          terraformer plan aws --resources=${{ github.event.inputs.resources }} --regions=${{ github.event.inputs.aws_region }} --profile ""
 
       # Run Terraformer to generate the terraformer plan
       - name: Show Plan
