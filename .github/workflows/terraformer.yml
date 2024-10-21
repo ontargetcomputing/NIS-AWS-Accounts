@@ -6,12 +6,15 @@ on:
     types: [labeled]
 
 jobs:
-  terraformer:
+  terraformer_on_import_label:
     if: github.event.label.name == 'import'
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the repository code
+      - name: Run only when 'import' label is added to PR targeting main
+        run: echo "The 'import' label has been added to a pull request targeting the main branch."
+
+        # Step 1: Check out the repository code
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -63,3 +66,16 @@ jobs:
       #     git push origin main
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  check_for_skipped_workflow:
+    # This runs regardless of the previous job outcome.
+    runs-on: ubuntu-latest
+    needs: terraformer_on_import_label
+    if: always()
+    steps:
+      - name: Check if the previous job was skipped
+        run: |
+          if [[ "${{ needs.terraformer_on_import_label.result }}" == "skipped" ]]; then
+            echo "The workflow was skipped because the 'import' label was not added or the target branch was not 'main'."
+          else
+            echo "The workflow ran successfully."
