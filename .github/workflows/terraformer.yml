@@ -10,7 +10,7 @@ jobs:
     steps:
       # Step 1: Check out the repository code
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # # Step 2: Set up AWS credentials (if using AWS)
       # - name: Configure AWS credentials
