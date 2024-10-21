@@ -1,13 +1,13 @@
 name: Run Terraformer
 
 on:
-  
+  workflow_dispatch: # This allows manually triggering the workflow from GitHub Actions UI
   pull_request:
     types: [labeled]
 
 jobs:
   terraformer:
-    
+    if: github.event.label.name == 'import'
     runs-on: ubuntu-latest
 
     steps:
