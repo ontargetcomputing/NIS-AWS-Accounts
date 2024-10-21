@@ -59,14 +59,14 @@ jobs:
           chmod +x terraformer-all-linux-amd64
           sudo mv terraformer-all-linux-amd64 /usr/local/bin/terraformer
 
-      # Step 4: Run Terraformer to generate the terraformer plan
+      # Run terraform init to setup
       - name: Run terraform import
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          terraform import
+          terraform init
 
 
-      # Step 4: Run Terraformer to generate the terraformer plan
+      # Run Terraformer to generate the terraformer plan
       - name: Run Terraformer to generate plan
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
