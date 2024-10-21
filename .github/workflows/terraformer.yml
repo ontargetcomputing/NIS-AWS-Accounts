@@ -2,8 +2,8 @@ name: Run Terraformer
 
 on:
   
-  label:
-    types: [created]
+  pull_request:
+    types: [labeled]
 
 jobs:
   terraformer:
