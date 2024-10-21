@@ -79,3 +79,4 @@ jobs:
             echo "The workflow was skipped because the 'import' label was not added or the target branch was not 'main'."
           else
             echo "The workflow ran successfully."
+          fi;
