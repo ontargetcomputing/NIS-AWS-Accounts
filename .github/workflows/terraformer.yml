@@ -75,7 +75,7 @@ jobs:
     steps:
       - name: Check if the previous job was skipped
         run: |
-          if "${{ needs.terraformer_on_import_label.result }}" == "skipped"; then
+          if ["${{ needs.terraformer_on_import_label.result }}" == "skipped"]; then
             echo "The workflow was skipped because the 'import' label was not added or the target branch was not 'main'."
           else
             echo "The workflow ran successfully."
