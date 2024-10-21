@@ -8,15 +8,19 @@ on:
         required: true
         type: choice
         options:
+          - 'Please choose a workspace'
           - accounts/SBOX-9394/baseline/baseline-workspace
           - TODO
+        default: 'Please choose a workspace'
       resources:
         description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
         required: true
         type: choice
         options:
+          - 'Plase choose a resource to import'
           - vpc
           - ec2
+        default: 'Plase choose a resource to import'
       aws_region:
         description: 'AWS Region'
         required: true
