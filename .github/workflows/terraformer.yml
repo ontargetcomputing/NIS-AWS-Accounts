@@ -84,7 +84,7 @@ jobs:
       # Terraformer with the Name tag on the resource.  If no 'Name' tag exists, this will error out.
       - name: Cook Plan
         run: |
-          python scripts/cook_plan.py ./accounts/sbox-9394/baseline/baseline-workspace/generated/aws/terraformer/plan.json
+          python scripts/cook_plan.py  ${{ github.event.inputs.worspace_path }}/generated/aws/terraformer/plan.json
 
 
       # Step 4: Run Terraformer to generate Terraform configuration
