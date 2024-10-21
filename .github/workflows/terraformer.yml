@@ -18,32 +18,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # # Step 2: Set up AWS credentials (if using AWS)
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v2
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: us-west-2 
-
-      # # Step 3: Install Terraformer
+      # Step 2: Set up AWS credentials (if using AWS)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2 
+      
+      # Step 3: Install Terraformer
       - name: Install Terraformer
         run: |
-            echo "I AM HERE"
-      
-      # # Step 3: Install Terraformer
-      # - name: Install Terraformer
-      #   run: |
-      #     wget https://github.com/GoogleCloudPlatform/terraformer/releases/download/0.8.24/terraformer-all-linux-amd64
-      #     chmod +x terraformer-all-linux-amd64
-      #     sudo mv terraformer-all-linux-amd64 /usr/local/bin/terraformer
+          wget https://github.com/GoogleCloudPlatform/terraformer/releases/download/0.8.24/terraformer-all-linux-amd64
+          chmod +x terraformer-all-linux-amd64
+          sudo mv terraformer-all-linux-amd64 /usr/local/bin/terraformer
 
-      # # Step 4: Run Terraformer to generate Terraform configuration
-      #     # terraformer import aws --resources=vpc,subnet,ec2 --regions=us-west-1 \
-      #     # --profile=default --filter="Name=vpc_id;Value=vpc-12345"
-      # - name: Run Terraformer to generate plan
-      #   run: |
-      #     terraformer plan aws --resources=vpc --regions=us-west-2
+      # Step 4: Run Terraformer to generate Terraform configuration
+          # terraformer import aws --resources=vpc,subnet,ec2 --regions=us-west-1 \
+          # --profile=default --filter="Name=vpc_id;Value=vpc-12345"
+      - name: Run Terraformer to generate plan
+        run: |
+          terraformer plan aws --resources=vpc --regions=us-west-2
 
 
       # Step 4: Run Terraformer to generate Terraform configuration
