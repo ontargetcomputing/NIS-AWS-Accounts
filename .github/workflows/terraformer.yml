@@ -1,13 +1,18 @@
 name: Run Terraformer
 
 on:
-  workflow_dispatch: # This allows manually triggering the workflow from GitHub Actions UI
-  pull_request:
-    types: [labeled]
+  workflow_dispatch: 
+    inputs:
+      aws_region:
+        description: 'The aws region to be imported from'
+        required: true
+        default: 'us-west-2'
+      resources:
+        description: 'The resources to import, see https://github.com/GoogleCloudPlatform/terraformer'
+        required: true
 
 jobs:
   terraformer_on_import_label:
-    if: github.event.label.name == 'import'
     runs-on: ubuntu-latest
 
     steps:
@@ -38,7 +43,7 @@ jobs:
           # --profile=default --filter="Name=vpc_id;Value=vpc-12345"
       - name: Run Terraformer to generate plan
         run: |
-          terraformer plan aws --resources=vpc --regions=us-west-2
+          terraformer plan aws --resources=${{ github.event.inputs.resources }} --regions=${{ github.event.inputs.aws_region }}
 
 
       # Step 4: Run Terraformer to generate Terraform configuration
