@@ -95,9 +95,10 @@ jobs:
         run: |
           terraform state list -state=terraform.tfstate > destination-resources.txt
           terraform state list -state=generated/aws/${{ github.event.inputs.resources }}/terraform.tfstate > source-resources.txt
-          echo TODO FIX THIS - the number does not show
-          wc -l < destination-resources.txt
-          wc -l < source-resources.txt
+          line_count=$(wc -l < destination-resources.txt)  
+          echo "The destination state has $line_count resources."
+          line_count=$(wc -l < source-resources.txt)  
+          echo "The imported state has $line_count resources."
 
       - name: Move each of the imported resources into the current state
         working-directory: ${{ github.event.inputs.worspace_path }}
@@ -109,7 +110,7 @@ jobs:
       - name: Replace legacy provider lines in current state
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          sed -i 's|provider\["registry.terraform.io/-/aws"\]|provider\["registry.terraform.io/hashicorp/aws"\]|g' your-file.tf
+          sed -i 's|provider\["registry.terraform.io/-/aws"\]|provider\["registry.terraform.io/hashicorp/aws"\]|g' terraform.tfstate
 
       - name: Output new state file
         working-directory: ${{ github.event.inputs.worspace_path }}
