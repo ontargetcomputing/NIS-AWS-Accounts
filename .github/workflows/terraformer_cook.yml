@@ -110,7 +110,7 @@ jobs:
       - name: Replace legacy provider lines in current state
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          sed -i 's|provider\["registry.terraform.io/-/aws"\]|provider\["registry.terraform.io/hashicorp/aws"\]|g' terraform.tfstate
+          sed -i 's|registry.terraform.io/-/aws|registry.terraform.io/hashicorp/aws|g' terraform.tfstate
 
       - name: Output new state file
         working-directory: ${{ github.event.inputs.worspace_path }}
