@@ -93,11 +93,11 @@ jobs:
       - name: List Number or resources in each state
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          terraform state list -state=terraform.tfstate > destination-resources.txt
-          terraform state list -state=generated/aws/${{ github.event.inputs.resources }}/terraform.tfstate > source-resources.txt
-          line_count=$(wc -l < destination-resources.txt)  
+          terraform state list -state=terraform.tfstate > generated/destination-resources.txt
+          terraform state list -state=generated/aws/${{ github.event.inputs.resources }}/terraform.tfstate > generated/source-resources.txt
+          line_count=$(wc -l < generated/destination-resources.txt)  
           echo "The destination state has $line_count resources."
-          line_count=$(wc -l < source-resources.txt)  
+          line_count=$(wc -l < generated/source-resources.txt)  
           echo "The imported state has $line_count resources."
 
       - name: Move each of the imported resources into the current state
@@ -105,7 +105,7 @@ jobs:
         run: |
           while IFS= read -r resource; do
           terraform state mv -state=generated/aws/${{ github.event.inputs.resources }}/terraform.tfstate -state-out=terraform.tfstate "$resource" "$resource"
-          done < source-resources.txt
+          done < generated/source-resources.txt
 
       - name: Replace legacy provider lines in current state
         working-directory: ${{ github.event.inputs.worspace_path }}
@@ -117,23 +117,19 @@ jobs:
         run: |
           cat terraform.tfstate
           
-      # Step 4: Run Terraformer to generate Terraform configuration
-          # terraformer import aws --resources=vpc,subnet,ec2 --regions=us-west-1 \
-          # --profile=default --filter="Name=vpc_id;Value=vpc-12345"
-      # - name: Run Terraformer to generate AWS infrastructure as code
-      #   run: |
-      #     terraformer import aws --resources=ec2 --regions=us-west-2 
-
-
-       #dfjdfjd
+      - name: Move generated resource files
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}.tf "${{ github.event.inputs.resources }}_$(date +%s).tf"    
+          cp generated/aws/${{ github.event.inputs.resources }}/outputs.tf "${{ github.event.inputs.resources }}_$(date +%s).tf"
 
       # Step 5: Commit and push generated Terraform files back to the repository
-      # - name: Commit and push changes
-      #   run: |
-      #     git config --global user.name "github-actions[bot]"
-      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      #     git add .
-      #     git commit -m "Add Terraform configurations from Terraformer"
-      #     git push origin main
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add 
+          git commit -m "Add Terraform configurations from Terraformer"
+          git push --set-upstream origin $(git_current_branch)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
