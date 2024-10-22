@@ -1,0 +1,137 @@
+name: Run Terraformer Plan and Import
+
+on:
+  workflow_dispatch: 
+    inputs:
+      worspace_path:
+        description: 'The path to the workspace to import into'
+        required: true
+        type: choice
+        options:
+          - 'Please choose a workspace'
+          - accounts/SBOX-9394/baseline/baseline-workspace
+        default: 'Please choose a workspace'
+      resources:
+        description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
+        required: true
+        type: choice
+        options:
+          - 'Plase choose a resource to import'
+          - vpc
+          - ec2
+        default: 'Plase choose a resource to import'
+      aws_region:
+        description: 'AWS Region'
+        required: true
+        default: 'us-west-2'
+
+# This is necessary for GitHub to request the OIDC token
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
+jobs:
+  terraformer_on_import_label:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # TODO - do not hardcode the ROLE ARN
+      # TODO - setup to run against other accounts
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::582983609964:role/github-actions-oidc-role
+          aws-region: us-west-2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          
+      # Install Terraformer
+      - name: Install Terraformer
+        run: |
+          wget https://github.com/GoogleCloudPlatform/terraformer/releases/download/0.8.24/terraformer-all-linux-amd64
+          chmod +x terraformer-all-linux-amd64
+          sudo mv terraformer-all-linux-amd64 /usr/local/bin/terraformer
+
+      # Run terraform init to setup
+      - name: Run terraform init
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform init
+
+      # Run Terraformer to generate the terraformer plan
+      # NOTICE the '--profile ""' on the terraformer plan call.  There was an issue when that is not included.
+      # Read https://github.com/GoogleCloudPlatform/terraformer/issues/940 for more info.
+      - name: Run Terraformer to generate plan
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          echo "Running plan in ${{ github.event.inputs.worspace_path }}"
+          terraformer plan aws --resources=${{ github.event.inputs.resources }} --regions=${{ github.event.inputs.aws_region }} --profile ""
+
+      - name: Show Plan
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          cat generated/aws/terraformer/plan.json
+      
+      # Attempt to "cook" the plan - this basically replaces the auto generated resource name given by 
+      # Terraformer with the Name tag on the resource.  If no 'Name' tag exists, this will error out.
+      - name: Cook Plan
+        run: |
+          python scripts/cook_plan.py  ${{ github.event.inputs.worspace_path }}/generated/aws/terraformer/plan.json
+
+      - name: Run Terraformer to import plan
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          echo "Running the import in ${{ github.event.inputs.worspace_path }}"
+          terraformer import plan generated/aws/terraformer/cooked_plan.json
+
+      - name: List Number or resources in each state
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform state list -state=terraform.tfsate > destination-resources.txt
+          terraform state list -state=generated/aws/terraformer/${{ github.event.inputs.resources }}/terraform.tfstate > source-resources.txt
+          wc -l > destination-resources.txt
+          wc -l > source-resources.txt
+
+      - name: Move each of the imported resources into the current state
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          while IFS= read -r resource; do
+          terraform state mv -state=generated/aws/terraformer/${{ github.event.inputs.resources }}/terraform.tfstate -state-out=terraform.tfstate "$resource" "$resource"
+          done < source-resources.txt
+
+      - name: Replace legacy provider lines in current state
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          sed -i 's|provider\["registry.terraform.io/-/aws"\]|provider\["registry.terraform.io/hashicorp/aws"\]|g' your-file.tf
+
+      - name: Output new state file
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          cat terraform.tfstate
+          
+      # Step 4: Run Terraformer to generate Terraform configuration
+          # terraformer import aws --resources=vpc,subnet,ec2 --regions=us-west-1 \
+          # --profile=default --filter="Name=vpc_id;Value=vpc-12345"
+      # - name: Run Terraformer to generate AWS infrastructure as code
+      #   run: |
+      #     terraformer import aws --resources=ec2 --regions=us-west-2 
+
+
+       #dfjdfjd
+
+      # Step 5: Commit and push generated Terraform files back to the repository
+      # - name: Commit and push changes
+      #   run: |
+      #     git config --global user.name "github-actions[bot]"
+      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      #     git add .
+      #     git commit -m "Add Terraform configurations from Terraformer"
+      #     git push origin main
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
