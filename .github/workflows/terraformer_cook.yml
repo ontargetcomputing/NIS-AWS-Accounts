@@ -70,10 +70,9 @@ jobs:
       - name: Run Terraformer to generate plan
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          echo "Running in the plan in ${{ github.event.inputs.worspace_path }}"
+          echo "Running plan in ${{ github.event.inputs.worspace_path }}"
           terraformer plan aws --resources=${{ github.event.inputs.resources }} --regions=${{ github.event.inputs.aws_region }} --profile ""
 
-      # Run Terraformer to generate the terraformer plan
       - name: Show Plan
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
@@ -85,7 +84,37 @@ jobs:
         run: |
           python scripts/cook_plan.py  ${{ github.event.inputs.worspace_path }}/generated/aws/terraformer/plan.json
 
+      - name: Run Terraformer to import plan
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          echo "Running the import in ${{ github.event.inputs.worspace_path }}"
+          terraformer import plan generated/aws/terraformer/cooked_plan.json
 
+      - name: List Number or resources in each state
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform state list -state=terraform.tfsate > destination-resources.txt
+          terraform state list -state=generated/aws/terraformer/${{ github.event.inputs.resources }}/terraform.tfstate > source-resources.txt
+          wc -l > destination-resources.txt
+          wc -l > source-resources.txt
+
+      - name: Move each of the imported resources into the current state
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          while IFS= read -r resource; do
+          terraform state mv -state=generated/aws/terraformer/${{ github.event.inputs.resources }}/terraform.tfstate -state-out=terraform.tfstate "$resource" "$resource"
+          done < source-resources.txt
+
+      - name: Replace legacy provider lines in current state
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          sed -i 's|provider\["registry.terraform.io/-/aws"\]|provider\["registry.terraform.io/hashicorp/aws"\]|g' your-file.tf
+
+      - name: Output new state file
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          cat terraform.tfstate
+          
       # Step 4: Run Terraformer to generate Terraform configuration
           # terraformer import aws --resources=vpc,subnet,ec2 --regions=us-west-1 \
           # --profile=default --filter="Name=vpc_id;Value=vpc-12345"
