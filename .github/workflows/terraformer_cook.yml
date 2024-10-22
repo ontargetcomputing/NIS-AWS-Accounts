@@ -94,7 +94,7 @@ jobs:
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           terraform state list -state=terraform.tfstate > destination-resources.txt
-          terraform state list -state=generated/aws/terraformer/${{ github.event.inputs.resources }}/terraform.tfstate > source-resources.txt
+          terraform state list -state=generated/aws/${{ github.event.inputs.resources }}/terraform.tfstate > source-resources.txt
           wc -l > destination-resources.txt
           wc -l > source-resources.txt
 
