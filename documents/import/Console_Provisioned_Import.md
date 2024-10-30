@@ -4,12 +4,34 @@ This guide provides instructions for importing AWS resources that were originall
 
 ## Steps for Importing Console-Provisioned Resources
 
-### 1. Identify the Resources to Import
+### 1. Identify and Tag the Resources to Import
 
-Determine which AWS resources need to be imported. Gather details such as:
-- **Resource type** (e.g., VPC, EC2 instance, S3 bucket)
-- **AWS Region** where the resource resides
-- **Resource identifiers** (e.g., instance IDs, bucket names)
+1. Determine which AWS resources need to be imported. Gather details such as:
+	- **Resource type** (e.g., VPC, EC2 instance, S3 bucket)
+	- **AWS Region** where the resource resides
+	- **Resource identifiers** (e.g., instance IDs, bucket names)
+
+2. ## Tagging Resources for Import
+
+To selectively import resources using Terraformer, we’ll use the `--filter="Name=tags.<TAG_NAME>"` option. This approach allows you to import only the resources tagged with a specific, unique tag name, ensuring that Terraformer only includes the intended resources in its plan.
+
+### Steps to Tag Resources for Import
+
+1. **Choose a Unique Tag Name**:  
+   Select a unique tag key that will be used to identify the resources you want to import. For example, use `IMPORT1`, `IMPORT_DEV`, or `TF_IMPORT_DATE` as the tag key. This key should be distinctive to avoid accidentally including resources not meant for import.
+
+2. **Apply the Tag to Resources**:  
+   In the AWS Console, find each resource you want to import and add a tag with the chosen key. For instance, if you chose `IMPORTS_10302024 ` as your tag name, apply this tag to every resource you intend to import.
+
+   - **Tag Key**: Use the unique tag key you chose (e.g., `IMPORTS_10302024`).
+   - **Tag Value**: You may leave the value blank or set a descriptive value if preferred.
+
+   Example tag:
+   - **Key**: `IMPORTS_10302024 `
+   - **Value**: `OptionalDescription`
+
+  This tag will be used to identify specific resources of the chose types to import.
+
 
 ### 2. Open a PR against and Update the Import Log
 
@@ -39,8 +61,9 @@ In the GitHub repository, navigate to **Actions** and manually trigger the [work
 
 <span style="color: red;">**TODO** - need to allow more resources and filtering</span>
 
-- **Workspace Path**: Select the Terraform workspace path that matches the resource’s environment.
-- **Resources**: Choose the resource type(s) you wish to import (e.g., VPC, EC2).
+- **Workspace Path**: Select the Terraform workspace path that matches the resource’s environment.  This is a select list, so choose the appropriate value for the account your are importing from.
+- **Resources**: A comma delimited list of the resource types you wish to import.  The default is "*" which attempts to import all resources. You can see a list of the available values [here](https://github.com/GoogleCloudPlatform/terraformer/tree/master/providers/aws).
+**NOTE**: This seems to be a terraformer bug when using '*'.  
 - **AWS Region**: Specify the region where the resource is located.
 
 **Note**: Ensure this workflow is triggered within an open PR. If there is no active PR, the workflow will not execute.
