@@ -17,20 +17,32 @@ This repository contains Terraform configurations for deploying and managing inf
 └── README.md           # Start here
 ```
 ## Usage
+This section provides detailed instructions on setting up and executing Terraform for multi-account, multi-environment deployments. Follow these steps to configure AWS credentials, manage Terraform state, and apply the infrastructure changes.
 
 ### Configuration
 
+TODO
+
 ### Terraform Backend
+
+TODO
 
 ### Execution
 
+TODO 
+
 ## Managing Multiple AWS Accounts
 
-## Modules
+TODO 
 
-## Variables
+## Importing Existing Resources
 
-## Outputs
+In cases where AWS resources already exist within your accounts, this section provides guidance on importing them into Terraform. Some resources may already be managed by Terraform in different workspaces, by CloudFormation stacks, or were provisioned directly through the AWS Console.
+
+To standardize infrastructure management, follow the import instructions to consolidate these resources into the current Terraform configuration.  
+
+You can find instructions in the [Importing Existing Resources Guide](./documents/import/README.md).
+
 
 ## Troubleshooting
 
