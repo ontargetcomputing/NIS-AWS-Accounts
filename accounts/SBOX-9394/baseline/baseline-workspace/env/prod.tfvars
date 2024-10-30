@@ -1,0 +1,2 @@
+TF_ORGANIZATION = "dhcs"
+TF_WORKSPACE = "NIS-AWS-TF-PrefixLists-5017"

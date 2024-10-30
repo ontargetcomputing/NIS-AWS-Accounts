@@ -1,4 +1,4 @@
-name: Run Terraformer Plan and Import
+name: Import
 
 on:
   workflow_dispatch: 
@@ -34,12 +34,15 @@ jobs:
   terraformer_import:
     runs-on: ubuntu-latest
 
+    # Ensures it only runs if triggered in a PR context
+    if: github.event.pull_request != null  
+    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       # TODO - do not hardcode the ROLE ARN
-      # TODO - setup to run against other accounts
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
