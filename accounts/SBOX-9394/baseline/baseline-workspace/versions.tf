@@ -2,10 +2,10 @@ terraform {
   required_version = ">= 1.9.8"
 
   cloud {
-    organization = var.TF_ORGANIZATION
+    organization = "balutbomber"
 
     workspaces {
-      name = var.TF_WORKSPACE
+      name = "NIS-AWS-TF-PrefixLists-5017"
     }
   }
 
