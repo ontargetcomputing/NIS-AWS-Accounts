@@ -14,12 +14,11 @@ on:
       resources:
         description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
         required: true
-        type: choice
-        options:
-          - 'Plase choose a resource to import'
-          - vpc
-          - ec2
-        default: 'Plase choose a resource to import'
+        default: "*"
+      identifying_tag:
+        description: 'The tag used to identify the resources to import'
+        required: true
+      # TODO : add multiple regions?
       aws_region:
         description: 'AWS Region'
         required: true
@@ -74,7 +73,7 @@ jobs:
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           echo "Running plan in ${{ github.event.inputs.worspace_path }}"
-          terraformer plan aws --resources=${{ github.event.inputs.resources }} --regions=${{ github.event.inputs.aws_region }} --profile ""
+          terraformer plan aws --resources=${{ github.event.inputs.resources }} --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions=${{ github.event.inputs.aws_region }} --profile ""
 
       - name: Show Plan
         working-directory: ${{ github.event.inputs.worspace_path }}
