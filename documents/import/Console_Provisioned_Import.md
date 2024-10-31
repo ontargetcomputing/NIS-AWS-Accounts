@@ -63,7 +63,9 @@ In the GitHub repository, navigate to **Actions** and manually trigger the [work
 
 - **Workspace Path**: Select the Terraform workspace path that matches the resource’s environment.  This is a select list, so choose the appropriate value for the account your are importing from.
 - **Resources**: A comma delimited list of the resource types you wish to import.  The default is "*" which attempts to import all resources. You can see a list of the available values [here](https://github.com/GoogleCloudPlatform/terraformer/tree/master/providers/aws).
-**NOTE**: This seems to be a terraformer bug when using '*'.  
+	- **NOTE**: This seems to be a terraformer bug when using '*'. 
+	- The comma delimited list cannot have spaces in it eg. "vpc,s3" not "vpc, s3"
+	 
 - **AWS Region**: Specify the region where the resource is located.
 
 **Note**: Ensure this workflow is triggered within an open PR. If there is no active PR, the workflow will not execute.
