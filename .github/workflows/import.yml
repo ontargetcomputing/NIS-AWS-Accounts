@@ -32,10 +32,8 @@ permissions:
 jobs:
   terraformer_import:
     runs-on: ubuntu-latest
-
-    # Ensures it only runs if triggered in a PR context
-    if: github.event.pull_request != null  
-    
+    # Run only if not on main branch
+    if: github.ref != 'refs/heads/main'  
 
     steps:
       - name: Checkout repository
