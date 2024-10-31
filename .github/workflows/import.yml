@@ -72,8 +72,8 @@ jobs:
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           echo "Running plan in ${{ github.event.inputs.worspace_path }}"
-          echo "Running terraformer plan aws --resources=${{ github.event.inputs.resources }} --filter=\"Name=tags.${{ github.event.inputs.identifying_tag }}\" --regions=${{ github.event.inputs.aws_region }} --profile \"\""
-          terraformer plan aws --resources=${{ github.event.inputs.resources }} --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions=${{ github.event.inputs.aws_region }} --profile ""
+          echo "Running terraformer plan aws --resources=\"${{ github.event.inputs.resources }}\"" --filter=\"Name=tags.${{ github.event.inputs.identifying_tag }}\" --regions=\"${{ github.event.inputs.aws_region }}\" --profile \"\""
+          terraformer plan aws --resources="${{ github.event.inputs.resources }}" --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions="${{ github.event.inputs.aws_region }}" --profile ""
 
       - name: Show Plan
         working-directory: ${{ github.event.inputs.worspace_path }}
