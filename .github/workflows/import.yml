@@ -132,9 +132,8 @@ jobs:
       - name: Move generated resource files
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          timestamp=$(date +%s) 
-          cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}.tf "${{ github.event.inputs.resources }}_${timestamp}.tf"    
-          cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}_outputs.tf "${{ github.event.inputs.resources }}_${timestamp}.tf"
+          cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}.tf "${{ github.event.inputs.resources }}_${{ github.event.inputs.identifying_tag }}.tf"    
+          cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}_outputs.tf "${{ github.event.inputs.resources }}_${{ github.event.inputs.identifying_tag }}.tf"
 
       # Step 5: Commit and push generated Terraform files back to the repository
       - name: Commit and push changes
