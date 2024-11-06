@@ -2,16 +2,16 @@ name: Terraform Plan and Apply On Merge
  
 on:
   workflow_dispatch:
-  # Trigger when a pull request is created or updated
-  pull_request:
-    types:
-      - opened
-      - synchronize
+  # # Trigger when a pull request is created or updated
+  # pull_request:
+  #   types:
+  #     - opened
+  #     - synchronize
  
-  # Trigger when a merge happens to the main branch, NOTE: should be a merge.  No direct push to main should be allowed
-  push:
-    branches:
-      - main
+  # # Trigger when a merge happens to the main branch, NOTE: should be a merge.  No direct push to main should be allowed
+  # push:
+  #   branches:
+  #     - main
  
 jobs:
   terraform:
