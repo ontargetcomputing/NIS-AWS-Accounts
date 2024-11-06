@@ -33,16 +33,19 @@ To selectively import resources using Terraformer, we’ll use the `--filter="Na
   This tag will be used to identify specific resources of the chose types to import.
 
 
-### 2. Open a PR against and Update the Import Log
+### 2. Open a PR against *main* and Update the Import Log
 
 1. **Open a Pull Request (PR)**:  
    Begin by opening a new pull request against *main* in your repository. 
 
 2. **Update the Import Log**:  
    In the PR, update an [Import Log](./IMPORT_LOG.md) file to document the resources you plan to import. Include:
-   - **Resource Type and Name**: Specify the types and names (or identifiers) of resources to be imported (e.g., `VPC - vpc-12345`, `EC2 Instance - i-1234567890abcdef`).
+   - **Date**: Give the current Date
+   - **Unique Import Tag**: Give the unique tag name decided above.
+   - **Resource Types**: Specify the types of resources to be imported (e.g., `vpc`, `s3`).  See
    - **Destination Workspace**: Mention the target Terraform workspace where these resources will be imported.
    - **Region**: Indicate the AWS region of each resource.
+   - **Description**: Give a short description of the work. 
 
    Example entry:
    
@@ -50,7 +53,8 @@ To selectively import resources using Terraformer, we’ll use the `--filter="Na
    ## Import Log
 
    - **Date**: YYYY-MM-DD
-   - **Resource**: VPC - `vpc-12345`
+   - **Unique Import Tag**: eg. IMPORTS_10302024
+   - **Resource Types**: Specify the types of resources imported
    - **Destination Workspace**: `accounts/SBOX-9394/baseline/baseline-workspace`
    - **Region**: us-west-2
    - **Description**: Initial import of the VPC for dev environment.
@@ -59,11 +63,10 @@ To selectively import resources using Terraformer, we’ll use the `--filter="Na
 
 In the GitHub repository, navigate to **Actions** and manually trigger the [workflow](../../.github/workflows/import.yml) designed for importing resources. When prompted, provide the necessary inputs:
 
-<span style="color: red;">**TODO** - need to allow more resources and filtering</span>
 
 - **Workspace Path**: Select the Terraform workspace path that matches the resource’s environment.  This is a select list, so choose the appropriate value for the account your are importing from.
-- **Resources**: A comma delimited list of the resource types you wish to import.  The default is "*" which attempts to import all resources. You can see a list of the available values [here](https://github.com/GoogleCloudPlatform/terraformer/tree/master/providers/aws).
-	- **NOTE**: This seems to be a terraformer bug when using '*'. 
+- **Resources**: A comma delimited list of the resource types you wish to import.  You can see a list of the available values [here](https://github.com/GoogleCloudPlatform/terraformer/tree/master/providers/aws).
+	- **NOTE**: There seems to be a terraformer bug when using '*'. Please do not use.
 	- The comma delimited list cannot have spaces in it eg. "vpc,s3" not "vpc, s3"
 	 
 - **AWS Region**: Specify the region where the resource is located.
@@ -92,13 +95,10 @@ The GitHub Action will proceed to import the resources based on the `cooked_plan
 ### 6. Verify and Adjust Resource Attributes
 
 After the import:
+
 1. Run `terraform plan` to compare the imported configuration against the live environment.
 2. Check for discrepancies between Terraform attributes and AWS configurations. Update attributes in Terraform as needed to match your desired configuration.
-
-### Example Commands (For Local Testing)
-
-For testing or local import, you can use the following Terraform and Terraformer commands:
-
-- **Terraform Init**: Initializes the Terraform environment.
-  ```bash
-  terraform init
+3. Commit your changes and push to branch.
+	1. This will automatically run the plan.
+4. Request Review
+5. Merge

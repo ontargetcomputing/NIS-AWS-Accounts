@@ -14,7 +14,7 @@ on:
       resources:
         description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
         required: true
-        default: "*"
+        default: "Please specify"
       identifying_tag:
         description: 'The tag used to identify the resources to import'
         required: true
@@ -43,7 +43,8 @@ jobs:
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::582983609964:role/github-actions-oidc-role
+          #role-to-assume: arn:aws:iam::582983609964:role/github-actions-oidc-role
+          role-to-assume: ${{ secrets.AWS_ASSUME_ROLE }}
           aws-region: us-west-2
 
       - name: Set up Terraform
