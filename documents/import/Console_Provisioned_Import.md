@@ -35,9 +35,10 @@ To selectively import resources using Terraformer, we’ll use the `--filter="Na
 
 ### 2. Open a PR against *main* and Update the Import Log
 
+1. **Create a new branch**
 1. **Open a Pull Request (PR)**:  
    Begin by opening a new pull request against *main* in your repository. 
-
+	`git branch -b %branch_name%` 
 2. **Update the Import Log**:  
    In the PR, update an [Import Log](./IMPORT_LOG.md) file to document the resources you plan to import. Include:
    - **Date**: Give the current Date
