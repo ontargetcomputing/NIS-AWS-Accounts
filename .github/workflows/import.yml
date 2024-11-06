@@ -14,7 +14,7 @@ on:
       resources:
         description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
         required: true
-        default: "*"
+        default: "Please specify"
       identifying_tag:
         description: 'The tag used to identify the resources to import'
         required: true
@@ -32,10 +32,8 @@ permissions:
 jobs:
   terraformer_import:
     runs-on: ubuntu-latest
-
-    # Ensures it only runs if triggered in a PR context
-    if: github.event.pull_request != null  
-    
+    # Run only if not on main branch
+    if: github.ref != 'refs/heads/main'  
 
     steps:
       - name: Checkout repository
@@ -45,13 +43,15 @@ jobs:
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::582983609964:role/github-actions-oidc-role
+          #role-to-assume: arn:aws:iam::582983609964:role/github-actions-oidc-role
+          role-to-assume: ${{ secrets.AWS_ASSUME_ROLE }}
           aws-region: us-west-2
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.8
+          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
           
       # Install Terraformer
       - name: Install Terraformer
@@ -73,7 +73,8 @@ jobs:
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           echo "Running plan in ${{ github.event.inputs.worspace_path }}"
-          terraformer plan aws --resources=${{ github.event.inputs.resources }} --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions=${{ github.event.inputs.aws_region }} --profile ""
+          echo "Running terraformer plan aws --resources=\"${{ github.event.inputs.resources }}\" --filter=\"Name=tags.${{ github.event.inputs.identifying_tag }}\" --regions=\"${{ github.event.inputs.aws_region }}\" --profile \"\""
+          terraformer plan aws --resources="${{ github.event.inputs.resources }}" --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions="${{ github.event.inputs.aws_region }}" --profile ""
 
       - name: Show Plan
         working-directory: ${{ github.event.inputs.worspace_path }}
@@ -92,7 +93,7 @@ jobs:
           echo "Running the import in ${{ github.event.inputs.worspace_path }}"
           terraformer import plan generated/aws/terraformer/cooked_plan.json
 
-      - name: List Number or resources in each state
+      - name: List Number or resources in each state before import
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           terraform state list -state=terraform.tfstate > generated/destination-resources.txt
@@ -118,13 +119,22 @@ jobs:
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           cat terraform.tfstate
-          
+
+      - name: List Number or resources in each state before import
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform state list -state=terraform.tfstate > generated/destination-resources.txt
+          terraform state list -state=generated/aws/${{ github.event.inputs.resources }}/terraform.tfstate > generated/source-resources.txt
+          line_count=$(wc -l < generated/destination-resources.txt)  
+          echo "The destination state has $line_count resources."
+          line_count=$(wc -l < generated/source-resources.txt)  
+          echo "The imported state has $line_count resources."
+
       - name: Move generated resource files
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          timestamp=$(date +%s) 
-          cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}.tf "${{ github.event.inputs.resources }}_${timestamp}.tf"    
-          cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}_outputs.tf "${{ github.event.inputs.resources }}_${timestamp}.tf"
+          cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}.tf "${{ github.event.inputs.resources }}_${{ github.event.inputs.identifying_tag }}.tf"    
+          cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}_outputs.tf "${{ github.event.inputs.resources }}_${{ github.event.inputs.identifying_tag }}.tf"
 
       # Step 5: Commit and push generated Terraform files back to the repository
       - name: Commit and push changes
