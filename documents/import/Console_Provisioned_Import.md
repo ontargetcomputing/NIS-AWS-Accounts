@@ -11,11 +11,15 @@ This guide provides instructions for importing AWS resources that were originall
 	- **AWS Region** where the resource resides
 	- **Resource identifiers** (e.g., instance IDs, bucket names)
 
-2. ## Tagging Resources for Import
+**NOTE:** While it is possible for a terraform workspace to manage resources in separate accounts and regions, our process does not currently support that so all resources must all be in the same AWS **and** within the same region.  
+
+Future enhancements will probably be done to allow for multi account/region management.
+
+### 2. Tagging Resources for Import
 
 To selectively import resources using Terraformer, we’ll use the `--filter="Name=tags.<TAG_NAME>"` option. This approach allows you to import only the resources tagged with a specific, unique tag name, ensuring that Terraformer only includes the intended resources in its plan.
 
-### Steps to Tag Resources for Import
+#### Steps to Tag Resources for Import
 
 1. **Choose a Unique Tag Name**:  
    Select a unique tag key that will be used to identify the resources you want to import. For example, use `IMPORT1`, `IMPORT_DEV`, or `TF_IMPORT_DATE` as the tag key. This key should be distinctive to avoid accidentally including resources not meant for import.
@@ -33,7 +37,7 @@ To selectively import resources using Terraformer, we’ll use the `--filter="Na
   This tag will be used to identify specific resources of the chose types to import.
 
 
-### 2. Open a PR against *main* and Update the Import Log
+### 3. Open a PR against *main* and Update the Import Log
 
 1. **Create a new branch**
 1. **Open a Pull Request (PR)**:  
@@ -60,7 +64,7 @@ To selectively import resources using Terraformer, we’ll use the `--filter="Na
    - **Region**: us-west-2
    - **Description**: Initial import of the VPC for dev environment.
 
-### 2. Trigger the Import Workflow from the pull request
+### 4. Trigger the Import Workflow from the pull request
 
 In the GitHub repository, navigate to **Actions** and manually trigger the [workflow](../../.github/workflows/import.yml) designed for importing resources. When prompted, provide the necessary inputs:
 
