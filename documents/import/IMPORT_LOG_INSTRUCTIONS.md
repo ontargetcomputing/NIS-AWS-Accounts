@@ -20,7 +20,9 @@ Below is a recommended template for recording import details. You can copy this 
 ```markdown
 # Import Log
 
-## Import Entry - YYYY-MM-DD
+## Entries
+
+### Import Entry - YYYY-MM-DD
 
 - **Resource**: [Resource Type - Resource Identifier]
   - **Example**: VPC - `vpc-12345`, EC2 Instance - `i-1234567890abcdef`
@@ -28,5 +30,8 @@ Below is a recommended template for recording import details. You can copy this 
   - **Example**: `accounts/SBOX-9394/baseline/baseline-workspace`
 - **Region**: `[AWS Region]`
   - **Example**: us-west-2
+- **Import Tag**: The unique tag on the resource if imported console provisioned
+- **Workspace**: The Terraform workspace if importing from an existing workspace.
+- **Stack**: CloudFormation stack if importing from an existing ClougFormation Stack.
 - **Description**: `[Brief description of the import purpose or context]`
   - **Example**: Initial import of VPC for development environment.
