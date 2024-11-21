@@ -217,7 +217,7 @@ jobs:
           mv generated/destination_terraform.tfstate terraform.tfstate
 
       - name: Move generated resource files
-        working-directory: ${{ github.event.inputs.worspace_path }}
+        working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
         run: |
           IFS=','
           CLEANED_RESOURCES="${{ steps.clean_input.outputs.cleaned_resources }}"
