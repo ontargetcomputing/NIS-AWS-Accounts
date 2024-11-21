@@ -181,19 +181,36 @@ jobs:
       - name: Move each of the imported resources into the current state
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          while IFS= read -r resource; do
-          terraform state mv -state=generated/aws/terraformer/terraform.tfstate -state-out=terraform.tfstate "$resource" "$resource"
-          done < generated/source-resources.txt
+          IFS=','
+          CLEANED_RESOURCES="${{ steps.clean_input.outputs.cleaned_resources }}"
+          
+          for dir in $CLEANED_RESOURCES; do
+            if [ -d "$dir" ]; then
+              echo "Processing directory: $dir"
+              (
+                cd "$dir" || exit
+                terraform state mv -state=./terraform.tfstate -state-out=../destination_terraform.tfstate "$resource" "$resource"
+              )
+            else
+              echo "Directory does not exist: $dir"
+            fi
+          done
+          IFS=' '
 
       - name: Replace legacy provider lines in current state
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          sed -i 's|registry.terraform.io/-/aws|registry.terraform.io/hashicorp/aws|g' terraform.tfstate
+          sed -i 's|registry.terraform.io/-/aws|registry.terraform.io/hashicorp/aws|g' generated/destination_terraform.tfstate
 
       - name: Output new state file
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          cat terraform.tfstate
+          cat generated/destination_terraform.tfstate
+
+      - name: Move the new state to top directory
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          mv generated/destination_terraform.tfstate terraform.tfstate
 
       - name: Move generated resource files
         working-directory: ${{ github.event.inputs.worspace_path }}
