@@ -137,8 +137,9 @@ jobs:
         run: |
           IFS=','
           ROLE_ARN="arn:aws:iam::582983609964:role/balutbomber-terraform-admin-role"
+          CLEANED_RESOURCES="${{ steps.clean_input.outputs.cleaned_resources }}"
           
-          for dir in "${{ steps.clean_input.outputs.cleaned_resources }}"; do
+          for dir in $CLEANED_RESOURCES; do
             if [ -d "$dir" ]; then
               echo "Processing directory: $dir"
               (
@@ -160,8 +161,9 @@ jobs:
         working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
         run: |
           IFS=','
-
-          for dir in "${{ steps.clean_input.outputs.cleaned_resources }}"; do
+          CLEANED_RESOURCES="${{ steps.clean_input.outputs.cleaned_resources }}"
+          
+          for dir in $CLEANED_RESOURCES; do
             if [ -d "$dir" ]; then
               echo "Processing directory: $dir"
               (
