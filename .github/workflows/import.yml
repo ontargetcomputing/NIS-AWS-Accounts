@@ -111,6 +111,30 @@ jobs:
           line_count=$(wc -l < destination-resources.txt)  
           echo "The destination state has $line_count resource(s)."
 
+      - name: Update imported provider.tf files
+        working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
+        run: |
+          IFS=','
+          ROLE_ARN="arn:aws:iam::582983609964:role/balutbomber-terraform-admin-role"
+          
+          for dir in ${{ steps.clean_input.outputs.cleaned_resources }}; do
+            if [ -d "$dir" ]; then
+              echo "Processing directory: $dir"
+              (
+                cd "$dir" || exit
+                sed -i '/provider "aws" {/a\
+                assume_role {\n\
+                  role_arn = "'$ROLE_ARN'"\n\
+                }' provider.tf
+ 
+                cat provider.tf
+              )
+            else
+              echo "Directory does not exist: $dir"
+            fi
+          done
+          IFS=' '
+
       - name: List Number or resources in each imported state before import
         working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
         run: |
@@ -121,7 +145,6 @@ jobs:
               echo "Processing directory: $dir"
               (
                 cd "$dir" || exit
-                # Run your command here
                 terraform state list -state=./terraform.tfstate > source-resources.txt
                 line_count=$(wc -l < source-resources.txt)  
                 echo "The imported state for $dir has $line_count resource(s)."
@@ -131,6 +154,9 @@ jobs:
             fi
           done
           IFS=' '
+
+
+
 
       # - name: List Number or resources in each state before import
       #   working-directory: ${{ github.event.inputs.worspace_path }}
