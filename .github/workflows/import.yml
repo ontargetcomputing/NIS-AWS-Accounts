@@ -66,7 +66,7 @@ jobs:
         run: |
           # Remove all whitespace using sed
           cleaned_resources=$(echo "${{ github.event.inputs.resources }}" | sed 's/[[:space:]]//g')
-          echo "::set-output name=cleaned_value::$cleaned_resources"
+          echo "::set-output name=cleaned_resources::$cleaned_resources"
       
       - name: Show cleaned input
         run: |
