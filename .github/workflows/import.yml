@@ -138,7 +138,7 @@ jobs:
           IFS=','
           ROLE_ARN="arn:aws:iam::582983609964:role/balutbomber-terraform-admin-role"
           
-          for dir in ${{ steps.clean_input.outputs.cleaned_resources }}; do
+          for dir in "${{ steps.clean_input.outputs.cleaned_resources }}"; do
             if [ -d "$dir" ]; then
               echo "Processing directory: $dir"
               (
@@ -161,7 +161,7 @@ jobs:
         run: |
           IFS=','
 
-          for dir in ${{ steps.clean_input.outputs.cleaned_resources }}; do
+          for dir in "${{ steps.clean_input.outputs.cleaned_resources }}"; do
             if [ -d "$dir" ]; then
               echo "Processing directory: $dir"
               (
