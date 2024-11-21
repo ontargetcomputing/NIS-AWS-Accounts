@@ -178,59 +178,36 @@ jobs:
           done
           IFS=' '
 
+      - name: Move each of the imported resources into the current state
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          while IFS= read -r resource; do
+          terraform state mv -state=generated/aws/terraformer/terraform.tfstate -state-out=terraform.tfstate "$resource" "$resource"
+          done < generated/source-resources.txt
 
+      - name: Replace legacy provider lines in current state
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          sed -i 's|registry.terraform.io/-/aws|registry.terraform.io/hashicorp/aws|g' terraform.tfstate
 
+      - name: Output new state file
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          cat terraform.tfstate
 
-      # - name: List Number or resources in each state before import
-      #   working-directory: ${{ github.event.inputs.worspace_path }}
-      #   run: |
-      #     terraform state list -state=generated/destination_terraform.tfstate > generated/destination-resources.txt
-      #     terraform state list -state=generated/aws/${{ github.event.inputs.resources }}/terraform.tfstate > generated/source-resources.txt
-      #     line_count=$(wc -l < generated/destination-resources.txt)  
-      #     echo "The destination state has $line_count resources."
-      #     line_count=$(wc -l < generated/source-resources.txt)  
-      #     echo "The imported state has $line_count resources."
+      - name: Move generated resource files
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}.tf "${{ github.event.inputs.resources }}_${{ github.event.inputs.identifying_tag }}.tf"    
+          cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}_outputs.tf "${{ github.event.inputs.resources }}_${{ github.event.inputs.identifying_tag }}.tf"
 
-      # - name: Move each of the imported resources into the current state
-      #   working-directory: ${{ github.event.inputs.worspace_path }}
-      #   run: |
-      #     while IFS= read -r resource; do
-      #     terraform state mv -state=generated/aws/terraformer/terraform.tfstate -state-out=terraform.tfstate "$resource" "$resource"
-      #     done < generated/source-resources.txt
-
-      # - name: Replace legacy provider lines in current state
-      #   working-directory: ${{ github.event.inputs.worspace_path }}
-      #   run: |
-      #     sed -i 's|registry.terraform.io/-/aws|registry.terraform.io/hashicorp/aws|g' terraform.tfstate
-
-      # - name: Output new state file
-      #   working-directory: ${{ github.event.inputs.worspace_path }}
-      #   run: |
-      #     cat terraform.tfstate
-
-      # - name: List Number or resources in each state before import
-      #   working-directory: ${{ github.event.inputs.worspace_path }}
-      #   run: |
-      #     terraform state list -state=terraform.tfstate > generated/destination-resources.txt
-      #     terraform state list -state=generated/aws/${{ github.event.inputs.resources }}/terraform.tfstate > generated/source-resources.txt
-      #     line_count=$(wc -l < generated/destination-resources.txt)  
-      #     echo "The destination state has $line_count resources."
-      #     line_count=$(wc -l < generated/source-resources.txt)  
-      #     echo "The imported state has $line_count resources."
-
-      # - name: Move generated resource files
-      #   working-directory: ${{ github.event.inputs.worspace_path }}
-      #   run: |
-      #     cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}.tf "${{ github.event.inputs.resources }}_${{ github.event.inputs.identifying_tag }}.tf"    
-      #     cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}_outputs.tf "${{ github.event.inputs.resources }}_${{ github.event.inputs.identifying_tag }}.tf"
-
-      # # Step 5: Commit and push generated Terraform files back to the repository
-      # - name: Commit and push changes
-      #   run: |
-      #     git config --global user.name "github-actions[bot]"
-      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      #     git add 
-      #     git commit -m "Add Terraform configurations from Terraformer"
-      #     git push --set-upstream origin $(git_current_branch)
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Step 5: Commit and push generated Terraform files back to the repository
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add 
+          git commit -m "Add Terraform configurations from Terraformer"
+          git push --set-upstream origin $(git_current_branch)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
