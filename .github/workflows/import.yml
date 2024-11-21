@@ -30,11 +30,36 @@ permissions:
   contents: read
 
 jobs:
-  terraformer_import:
+  check-branch:
     runs-on: ubuntu-latest
-    # Run only if not on main branch
-    if: github.ref != 'refs/heads/main'  
+    outputs:
+      branch_matches: ${{ steps.branch_check.outputs.matches }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
+      - name: Get current branch
+        id: current_branch
+        run: |
+          # Get the current branch
+          current_branch=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current branch: $current_branch"
+          echo "::set-output name=branch::$current_branch"
+
+      - name: Compare branches
+        id: branch_check
+        run: |
+          if [[ "${{ github.event.inputs.target_branch }}" == "${{ steps.current_branch.outputs.branch }}" ]]; then
+            echo "::set-output name=matches::true"
+          else
+            echo "::set-output name=matches::false"
+          fi
+
+
+  terraformer_import:
+    needs: check-branch
+    if: needs.check-branch.outputs.branch_matches == 'true'
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -161,3 +186,13 @@ jobs:
       #     git push --set-upstream origin $(git_current_branch)
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  terraformer_import_skipped:
+    needs: check-branch
+    if: needs.check-branch.outputs.branch_matches == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inform import was skipped
+        run: |
+          echo "Terraformer Import was skipped because attempt made to run on wrong branch"
