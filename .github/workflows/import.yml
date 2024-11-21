@@ -125,7 +125,7 @@ jobs:
         run: |
           terraform state pull > generated/destintation_terraform.tfstate
 
-      - name: List Number or resources in the state we are importing into
+      - name: List Number of resources in the state we are importing into
         working-directory: "${{ github.event.inputs.worspace_path }}/generated"
         run: |
           terraform state list -state=./destintation_terraform.tfstate > destination-resources.txt
