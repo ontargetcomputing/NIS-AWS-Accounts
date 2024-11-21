@@ -66,6 +66,21 @@ jobs:
         run: |
           terraform init
 
+      - name: Display original resources input
+        run: |
+          echo "Original resources input: '${{ github.event.inputs.resources }}'"
+
+      - name: Remove all whitespace from resources input
+        id: clean_input
+        run: |
+          # Remove all whitespace using sed
+          cleaned_value=$(echo "${{ github.event.inputs.resources }}" | sed 's/[[:space:]]//g')
+          echo "::set-output name=cleaned_value::$cleaned_value"
+      
+      - name: Use trimmed input
+        run: |
+          echo "Resouces input with all whitespace removed: '${{ steps.clean_input.outputs.cleaned_value }}'"
+
       # Run Terraformer to generate the terraformer plan
       # NOTICE the '--profile ""' on the terraformer plan call.  There was an issue when that is not included.
       # Read https://github.com/GoogleCloudPlatform/terraformer/issues/940 for more info.
@@ -73,8 +88,8 @@ jobs:
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           echo "Running plan in ${{ github.event.inputs.worspace_path }}"
-          echo "Running terraformer plan aws --resources=\"${{ github.event.inputs.resources }}\" --filter=\"Name=tags.${{ github.event.inputs.identifying_tag }}\" --regions=\"${{ github.event.inputs.aws_region }}\" --profile \"\""
-          terraformer plan aws --resources="${{ github.event.inputs.resources }}" --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions="${{ github.event.inputs.aws_region }}" --profile ""
+          echo "Running terraformer plan aws --resources=\"${{ steps.clean_input.outputs.cleaned_value }}\" --filter=\"Name=tags.${{ github.event.inputs.identifying_tag }}\" --regions=\"${{ github.event.inputs.aws_region }}\" --profile \"\""
+          terraformer plan aws --resources="${{ steps.clean_input.outputs.cleaned_value }}" --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions="${{ github.event.inputs.aws_region }}" --profile ""
 
       - name: Show Plan
         working-directory: ${{ github.event.inputs.worspace_path }}
