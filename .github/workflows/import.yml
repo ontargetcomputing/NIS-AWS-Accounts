@@ -189,7 +189,11 @@ jobs:
               echo "Processing directory: $dir"
               (
                 cd "$dir" || exit
-                terraform state mv -state=./terraform.tfstate -state-out=../destination_terraform.tfstate "$dir" "$dir"
+                  IFS=' '
+                  while IFS= read -r resource; do
+                  terraform state mv -state=./terraform.tfstate -state-out=../../destination_terraform.tfstate "$resource" "$resource"
+                  done < ./source-resources.txt
+                  IFS=','
               )
             else
               echo "Directory does not exist: $dir"
