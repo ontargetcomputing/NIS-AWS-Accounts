@@ -43,7 +43,24 @@ jobs:
         with:
           terraform_version: 1.9.8
           cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
-          
+
+      - name: Configure AWS OIDC
+        id: aws-oidc
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: "arn:aws:iam::582983609964:role/github-actions-oidc-role"
+          aws-region: us-west-2
+
+      - name: Assume Cross-Account Role
+        id: assume-role
+        run: |
+          export ROLE_ARN="arn:aws:iam::582983609964:role/balutbomber-github-admin-role"
+          SESSION_NAME="terraformer-session"
+          CREDS=$(aws sts assume-role --role-arn "$ROLE_ARN" --role-session-name "$SESSION_NAME" --query 'Credentials' --output json)
+          echo "AWS_ACCESS_KEY_ID=$(echo $CREDS | jq -r '.AccessKeyId')" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=$(echo $CREDS | jq -r '.SecretAccessKey')" >> $GITHUB_ENV
+          echo "AWS_SESSION_TOKEN=$(echo $CREDS | jq -r '.SessionToken')" >> $GITHUB_ENV
+
       # Install Terraformer
       - name: Install Terraformer
         run: |
@@ -77,6 +94,10 @@ jobs:
       # Read https://github.com/GoogleCloudPlatform/terraformer/issues/940 for more info.
       - name: Run Terraformer to generate plan
         working-directory: ${{ github.event.inputs.worspace_path }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}        
         run: |
           echo "Running plan in ${{ github.event.inputs.worspace_path }}"
           echo "Running terraformer plan aws --resources=\"${{ steps.clean_input.outputs.cleaned_resources }}\" --filter=\"Name=tags.${{ github.event.inputs.identifying_tag }}\" --regions=\"${{ github.event.inputs.aws_region }}\" --profile \"\""
