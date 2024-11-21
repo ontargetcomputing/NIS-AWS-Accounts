@@ -99,10 +99,15 @@ jobs:
           echo "Running the import in ${{ github.event.inputs.worspace_path }}"
           terraformer import plan generated/aws/terraformer/cooked_plan.json
 
+      - name: Pull the current terraform state from terraform cloud
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform state pull > generated/destintation_terraform.tfstate
+
       - name: List Number or resources in each state before import
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
-          terraform state list -state=terraform.tfstate > generated/destination-resources.txt
+          terraform state list -state=generated/destination_terraform.tfstate > generated/destination-resources.txt
           terraform state list -state=generated/aws/${{ github.event.inputs.resources }}/terraform.tfstate > generated/source-resources.txt
           line_count=$(wc -l < generated/destination-resources.txt)  
           echo "The destination state has $line_count resources."

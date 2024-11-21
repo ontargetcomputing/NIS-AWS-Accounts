@@ -1,0 +1,187 @@
+name: Import Console Managed Resources
+
+on:
+  workflow_dispatch: 
+    inputs:
+      worspace_path:
+        description: 'The path to the workspace to import into'
+        required: true
+        type: choice
+        options:
+          - 'Please choose a workspace'
+          - accounts/SBOX-9394/baseline/baseline-workspace
+        default: 'Please choose a workspace'
+      resources:
+        description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
+        required: true
+        default: "Please specify"
+      identifying_tag:
+        description: 'The tag used to identify the resources to import'
+        required: true
+      # TODO : add multiple regions?
+      aws_region:
+        description: 'AWS Region'
+        required: true
+        default: 'us-west-2'
+
+# This is necessary for GitHub to request the OIDC token
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
+jobs:
+  terraformer_import:
+    runs-on: ubuntu-latest
+    # Run only if not on main branch
+    if: github.ref != 'refs/heads/main'  
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
+          
+      # Install Terraformer
+      - name: Install Terraformer
+        run: |
+          wget https://github.com/GoogleCloudPlatform/terraformer/releases/download/0.8.24/terraformer-all-linux-amd64
+          chmod +x terraformer-all-linux-amd64
+          sudo mv terraformer-all-linux-amd64 /usr/local/bin/terraformer
+
+      # Run terraform init to setup
+      - name: Run terraform init
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform init
+
+      - name: Display original resources input
+        run: |
+          echo "Original resources input: '${{ github.event.inputs.resources }}'"
+
+      - name: Remove all whitespace from resources input
+        id: clean_input
+        run: |
+          # Remove all whitespace using sed
+          cleaned_resources=$(echo "${{ github.event.inputs.resources }}" | sed 's/[[:space:]]//g')
+          echo "::set-output name=cleaned_value::$cleaned_resources"
+      
+      - name: Show cleaned input
+        run: |
+          echo "Resouces input with all whitespace removed: '${{ steps.clean_input.outputs.cleaned_resources }}'"
+
+      # Run Terraformer to generate the terraformer plan
+      # NOTICE the '--profile ""' on the terraformer plan call.  There was an issue when that is not included.
+      # Read https://github.com/GoogleCloudPlatform/terraformer/issues/940 for more info.
+      - name: Run Terraformer to generate plan
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          echo "Running plan in ${{ github.event.inputs.worspace_path }}"
+          echo "Running terraformer plan aws --resources=\"${{ steps.clean_input.outputs.cleaned_resources }}\" --filter=\"Name=tags.${{ github.event.inputs.identifying_tag }}\" --regions=\"${{ github.event.inputs.aws_region }}\" --profile \"\""
+          terraformer plan aws --resources="${{ steps.clean_input.outputs.cleaned_resources }}" --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions="${{ github.event.inputs.aws_region }}" --profile ""
+
+      - name: Show Plan
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          cat generated/aws/terraformer/plan.json
+      
+      # Attempt to "cook" the plan - this basically replaces the auto generated resource name given by 
+      # Terraformer with the Name tag on the resource.  If no 'Name' tag exists, this will error out.
+      - name: Cook Plan
+        run: |
+          python scripts/cook_plan.py  ${{ github.event.inputs.worspace_path }}/generated/aws/terraformer/plan.json
+
+      - name: Run Terraformer to import plan
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          echo "Running the import in ${{ github.event.inputs.worspace_path }}"
+          terraformer import plan generated/aws/terraformer/cooked_plan.json
+
+      - name: Pull the current terraform state from terraform cloud
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform state pull > generated/destintation_terraform.tfstate
+
+      - name: List Number or resources in the state we are importing into
+        working-directory: "${{ github.event.inputs.worspace_path }}/generated"
+        run: |
+          terraform state list -state=./destintation_terraform.tfstate > destination-resources.txt
+          line_count=$(wc -l < destination-resources.txt)  
+          echo "The destination state has $line_count resource(s)."
+
+      - name: List Number or resources in each imported state before import
+        working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
+        run: |
+          IFS=','
+
+          for dir in ${{ steps.clean_input.outputs.cleaned_resources }}; do
+            if [ -d "$dir" ]; then
+              echo "Processing directory: $dir"
+              (
+                cd "$dir" || exit
+                # Run your command here
+                terraform state list -state=./terraform.tfstate > source-resources.txt
+                line_count=$(wc -l < source-resources.txt)  
+                echo "The imported state for $dir has $line_count resource(s)."
+              )
+            else
+              echo "Directory does not exist: $dir"
+            fi
+          done
+          IFS=' '
+
+      # - name: List Number or resources in each state before import
+      #   working-directory: ${{ github.event.inputs.worspace_path }}
+      #   run: |
+      #     terraform state list -state=generated/destination_terraform.tfstate > generated/destination-resources.txt
+      #     terraform state list -state=generated/aws/${{ github.event.inputs.resources }}/terraform.tfstate > generated/source-resources.txt
+      #     line_count=$(wc -l < generated/destination-resources.txt)  
+      #     echo "The destination state has $line_count resources."
+      #     line_count=$(wc -l < generated/source-resources.txt)  
+      #     echo "The imported state has $line_count resources."
+
+      # - name: Move each of the imported resources into the current state
+      #   working-directory: ${{ github.event.inputs.worspace_path }}
+      #   run: |
+      #     while IFS= read -r resource; do
+      #     terraform state mv -state=generated/aws/terraformer/terraform.tfstate -state-out=terraform.tfstate "$resource" "$resource"
+      #     done < generated/source-resources.txt
+
+      # - name: Replace legacy provider lines in current state
+      #   working-directory: ${{ github.event.inputs.worspace_path }}
+      #   run: |
+      #     sed -i 's|registry.terraform.io/-/aws|registry.terraform.io/hashicorp/aws|g' terraform.tfstate
+
+      # - name: Output new state file
+      #   working-directory: ${{ github.event.inputs.worspace_path }}
+      #   run: |
+      #     cat terraform.tfstate
+
+      # - name: List Number or resources in each state before import
+      #   working-directory: ${{ github.event.inputs.worspace_path }}
+      #   run: |
+      #     terraform state list -state=terraform.tfstate > generated/destination-resources.txt
+      #     terraform state list -state=generated/aws/${{ github.event.inputs.resources }}/terraform.tfstate > generated/source-resources.txt
+      #     line_count=$(wc -l < generated/destination-resources.txt)  
+      #     echo "The destination state has $line_count resources."
+      #     line_count=$(wc -l < generated/source-resources.txt)  
+      #     echo "The imported state has $line_count resources."
+
+      # - name: Move generated resource files
+      #   working-directory: ${{ github.event.inputs.worspace_path }}
+      #   run: |
+      #     cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}.tf "${{ github.event.inputs.resources }}_${{ github.event.inputs.identifying_tag }}.tf"    
+      #     cp generated/aws/${{ github.event.inputs.resources }}/${{ github.event.inputs.resources }}_outputs.tf "${{ github.event.inputs.resources }}_${{ github.event.inputs.identifying_tag }}.tf"
+
+      # # Step 5: Commit and push generated Terraform files back to the repository
+      # - name: Commit and push changes
+      #   run: |
+      #     git config --global user.name "github-actions[bot]"
+      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      #     git add 
+      #     git commit -m "Add Terraform configurations from Terraformer"
+      #     git push --set-upstream origin $(git_current_branch)
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
