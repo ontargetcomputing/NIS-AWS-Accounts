@@ -179,7 +179,7 @@ jobs:
           IFS=' '
 
       - name: Move each of the imported resources into the current state
-        working-directory: ${{ github.event.inputs.worspace_path }}
+        working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
         run: |
           IFS=','
           CLEANED_RESOURCES="${{ steps.clean_input.outputs.cleaned_resources }}"
