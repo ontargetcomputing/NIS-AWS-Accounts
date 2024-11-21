@@ -27,7 +27,7 @@ on:
 # This is necessary for GitHub to request the OIDC token
 permissions:
   id-token: write  # Required for OIDC
-  contents: read
+  contents: write
 
 jobs:
   terraformer_import:
