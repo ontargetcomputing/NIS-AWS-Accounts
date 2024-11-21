@@ -40,29 +40,22 @@ To selectively import resources using Terraformer, we’ll use the `--filter="Na
 ### 3. Open a PR against *main* and Update the Import Log
 
 1. **Create a new branch**
-1. **Open a Pull Request (PR)**:  
-   Begin by opening a new pull request against *main* in your repository. 
-	`git branch -b %branch_name%` 
+	
+	```sh
+	git branch -b %branch_name%
+	```
 2. **Update the Import Log**:  
-   In the PR, update an [Import Log](./IMPORT_LOG.md) file to document the resources you plan to import. Include:
-   - **Date**: Give the current Date
-   - **Unique Import Tag**: Give the unique tag name decided above.
-   - **Resource Types**: Specify the types of resources to be imported (e.g., `vpc`, `s3`).  See
-   - **Destination Workspace**: Mention the target Terraform workspace where these resources will be imported.
-   - **Region**: Indicate the AWS region of each resource.
-   - **Description**: Give a short description of the work. 
+   In the PR, update an [Import Log](./IMPORT_LOG.md) file to document the resources you plan to import. Follow the import log [instructions](./IMPORT_LOG_INSTRUCTIONS.md)
+3. **Commit the changes and push to central repository**
+	
+	```sh
+	git add .
+	git commit -m "updated import log with import specifics"
+	git push origin %branch_name%
+	```
+1. **Open a Pull Request (PR)**:  
+   Log into github and open a new pull request for your new branch against *main* in your repository. 
 
-   Example entry:
-   
-   ```markdown
-   ## Import Log
-
-   - **Date**: YYYY-MM-DD
-   - **Unique Import Tag**: eg. IMPORTS_10302024
-   - **Resource Types**: Specify the types of resources imported
-   - **Destination Workspace**: `accounts/SBOX-9394/baseline/baseline-workspace`
-   - **Region**: us-west-2
-   - **Description**: Initial import of the VPC for dev environment.
 
 ### 4. Trigger the Import Workflow from the pull request
 
