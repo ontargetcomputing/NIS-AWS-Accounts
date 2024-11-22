@@ -33,14 +33,15 @@ jobs:
           terraform_version: 1.9.8
           cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
 
-      # # Run terraform init to setup
-      # - name: Run terraform init
-      #   working-directory: ${{ github.event.inputs.worspace_path }}
-      #   run: |
-      #     terraform init
+      # Run terraform init to setup
+      - name: Run terraform init
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform init
 
       - name: Get Terraform State File
         id: find_tfstate
+        working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           # Search for the file matching the pattern
           TFSTATE_FILE=$(find . -type f -name "terraform_*.tfstate")
@@ -52,12 +53,12 @@ jobs:
         run: |
           echo ${{ steps.find_tfstate.outputs.tfstate_file }}
           
-      - name: Push the new state
-        working-directory: ${{ github.event.inputs.worspace_path }}
-        run: |
-          terraform state push ${{ steps.find_tfstate.outputs.tfstate_file }}
+      # - name: Push the new state
+      #   working-directory: ${{ github.event.inputs.worspace_path }}
+      #   run: |
+      #     terraform state push ${{ steps.find_tfstate.outputs.tfstate_file }}
 
-      - name: Run a plan against the state to see what has changed
-        working-directory: ${{ github.event.inputs.worspace_path }}
-        run: |
-          terraform plan -var-file="env/prod.tfvars"
+      # - name: Run a plan against the state to see what has changed
+      #   working-directory: ${{ github.event.inputs.worspace_path }}
+      #   run: |
+      #     terraform plan -var-file="env/prod.tfvars"
