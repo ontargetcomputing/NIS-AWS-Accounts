@@ -11,18 +11,7 @@ on:
           - 'Please choose a workspace'
           - accounts/SBOX-9394/baseline/baseline-workspace
         default: 'Please choose a workspace'
-      resources:
-        description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
-        required: true
-        default: "Please specify"
-      identifying_tag:
-        description: 'The tag used to identify the resources to import'
-        required: true
-      # TODO : add multiple regions?
-      aws_region:
-        description: 'AWS Region'
-        required: true
-        default: 'us-west-2'
+
 
 # This is necessary for GitHub to request the OIDC token
 permissions:
