@@ -52,12 +52,12 @@ jobs:
         run: |
           echo ${{ steps.find_tfstate.outputs.tfstate_file }}
           
-      # - name: Push the new state
-      #   working-directory: ${{ github.event.inputs.worspace_path }}
-      #   run: |
-      #     terraform state push terraform_
+      - name: Push the new state
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform state push ${{ steps.find_tfstate.outputs.tfstate_file }}
 
-      # - name: Run a plan against the state to see what has changed
-      #   working-directory: ${{ github.event.inputs.worspace_path }}
-      #   run: |
-      #     terraform plan -var-file="env/prod.tfvars"
+      - name: Run a plan against the state to see what has changed
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform plan -var-file="env/prod.tfvars"
