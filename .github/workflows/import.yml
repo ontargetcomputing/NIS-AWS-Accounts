@@ -257,5 +257,3 @@ jobs:
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           terraform plan -var-file="env/prod.tfvars"
-
-        
