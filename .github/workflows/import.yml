@@ -46,7 +46,7 @@ jobs:
 
       - name: Configure AWS OIDC
         id: aws-oidc
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: "arn:aws:iam::582983609964:role/github-actions-oidc-role"
           aws-region: us-west-2
@@ -83,7 +83,7 @@ jobs:
         run: |
           # Remove all whitespace using sed
           cleaned_resources=$(echo "${{ github.event.inputs.resources }}" | sed 's/[[:space:]]//g')
-          echo "::set-output name=cleaned_resources::$cleaned_resources"
+          echo "cleaned_resources=$cleaned_resources" >> $GITHUB_OUTPUT
       
       - name: Show cleaned input
         run: |
