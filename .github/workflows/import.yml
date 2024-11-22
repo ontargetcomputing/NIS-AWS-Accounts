@@ -252,3 +252,10 @@ jobs:
           git push --set-upstream origin "${GITHUB_REF_NAME}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run a plan against the state to see what has changed
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform plan -var-file="env/prod.tfvars"
+
+        
