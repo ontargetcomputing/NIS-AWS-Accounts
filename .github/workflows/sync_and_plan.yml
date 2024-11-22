@@ -50,7 +50,7 @@ jobs:
 
       - name: Check the name
         run: |
-          echo ${{ steps.find_tfstate.outputs.tfstate_file }}"
+          echo ${{ steps.find_tfstate.outputs.tfstate_file }}
           
       # - name: Push the new state
       #   working-directory: ${{ github.event.inputs.worspace_path }}
