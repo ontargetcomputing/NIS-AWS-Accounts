@@ -10,4 +10,4 @@ Instructions for the import log can be found [here](./IMPORT_LOG_INSTRUCTIONS.md
 - **Destination Workspace**: accounts/SBOX-9394/baseline
 - **Region**: us-west-2
 - **Import Tag**: IMPORT1
-- **Description**: Importing console provisioned resources test. 
+- **Description**: Importing console provisioned resources test.  
