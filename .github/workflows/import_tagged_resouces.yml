@@ -1,4 +1,4 @@
-name: Import Tagged Resources
+name: 1 - Import Tagged Resources
 
 on:
   workflow_dispatch: 

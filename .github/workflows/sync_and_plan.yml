@@ -1,4 +1,4 @@
-name: Sync state and plan
+name: 2 - Sync state and plan
 
 on:
   workflow_dispatch: 
