@@ -1,4 +1,4 @@
-resource "aws_vpc" "cwhipple-vpc" {
+resource "aws_vpc" "test-vpc" {
   assign_generated_ipv6_cidr_block     = "false"
   cidr_block                           = "10.0.0.0/16"
   enable_dns_hostnames                 = "true"
@@ -7,14 +7,12 @@ resource "aws_vpc" "cwhipple-vpc" {
   instance_tenancy                     = "default"
 
   tags = {
-    IMPORT1         = "abc"
-    IMPORT_12032024 = "true"
-    Name            = "cwhipple-vpc"
+    IMPORT_12032024_2 = "true"
+    Name              = "test-vpc"
   }
 
   tags_all = {
-    IMPORT1         = "abc"
-    IMPORT_12032024 = "true"
-    Name            = "cwhipple-vpc"
+    IMPORT_12032024_2 = "true"
+    Name              = "test-vpc"
   }
 }
