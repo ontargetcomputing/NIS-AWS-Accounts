@@ -42,7 +42,7 @@ To selectively import resources using Terraformer, we’ll use the `--filter="Na
 1. **Create a new branch**
 	
 	```sh
-	git branch -b %branch_name%
+	git checkout -b %branch_name%
 	```
 2. **Update the Import Log**:  
    In the PR, update an [Import Log](./IMPORT_LOG.md) file to document the resources you plan to import. Follow the import log [instructions](./IMPORT_LOG_INSTRUCTIONS.md)
@@ -59,8 +59,8 @@ To selectively import resources using Terraformer, we’ll use the `--filter="Na
 
 ### 4. Trigger the Import Workflow from the pull request
 
-In the GitHub repository, navigate to **Actions** and manually trigger the [1 - Import Tagged Resources](../../.github/workflows/import_tagged_resources.yml) workflow designed for importing resources. When prompted, provide the necessary inputs:
 
+In the GitHub repository, navigate to **Actions** and manually trigger the [1 - Import Tagged Resources](../../.github/workflows/import_tagged_resources.yml) workflow designed for importing resources. When prompted, provide the necessary inputs:
 
 - **Workspace Path**: Select the Terraform workspace path that matches the resource’s environment.  This is a select list, so choose the appropriate value for the account your are importing from.
 - **Resources**: A comma delimited list of the resource types you wish to import.  You can see a list of the available values [here](https://github.com/GoogleCloudPlatform/terraformer/tree/master/providers/aws).
