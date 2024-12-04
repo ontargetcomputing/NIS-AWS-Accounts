@@ -26,12 +26,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
  
-      - name: Configure AWS Credentials using OIDC
+      - name: Configure AWS OIDC
+        id: aws-oidc
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ASSUME_ROLE }}
+          role-to-assume: "arn:aws:iam::582983609964:role/github-actions-oidc-role"
           aws-region: us-west-2
-          role-duration-seconds: 900
  
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
