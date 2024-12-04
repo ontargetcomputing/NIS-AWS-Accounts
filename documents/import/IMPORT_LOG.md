@@ -12,7 +12,7 @@ Instructions for the import log can be found [here](./IMPORT_LOG_INSTRUCTIONS.md
 - **Import Tag**: IMPORT_12032024
 - **Description**: Importing console provisioned resources test.
 
-### Import Entry - 2024-12-03.2
+### Import Entry - 2024-12-03.3
 
 - **Resourcse**: vpc
 - **Destination Workspace**: accounts/SBOX-9394/baseline
