@@ -59,7 +59,7 @@ To selectively import resources using Terraformer, we’ll use the `--filter="Na
 
 ### 4. Trigger the Import Workflow from the pull request
 
-In the GitHub repository, navigate to **Actions** and manually trigger the [Import](../../.github/workflows/import.yml) workflow designed for importing resources. When prompted, provide the necessary inputs:
+In the GitHub repository, navigate to **Actions** and manually trigger the [Import Console Managed Resources](../../.github/workflows/import.yml) workflow designed for importing resources. When prompted, provide the necessary inputs:
 
 
 - **Workspace Path**: Select the Terraform workspace path that matches the resource’s environment.  This is a select list, so choose the appropriate value for the account your are importing from.
