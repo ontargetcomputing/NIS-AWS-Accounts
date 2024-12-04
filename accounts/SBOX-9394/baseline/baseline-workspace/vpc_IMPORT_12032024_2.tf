@@ -5,7 +5,6 @@ resource "aws_vpc" "test-vpc" {
   enable_dns_support                   = "true"
   enable_network_address_usage_metrics = "false"
   instance_tenancy                     = "default"
-  ipv6_netmask_length                  = "0"
 
   tags = {
     IMPORT_12032024_2 = "true"
