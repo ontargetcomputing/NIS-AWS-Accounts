@@ -42,7 +42,7 @@ To selectively import resources using Terraformer, we’ll use the `--filter="Na
 1. **Create a new branch**
 	
 	```sh
-	git branch -b %branch_name%
+	git checkout -b %branch_name%
 	```
 2. **Update the Import Log**:  
    In the PR, update an [Import Log](./IMPORT_LOG.md) file to document the resources you plan to import. Follow the import log [instructions](./IMPORT_LOG_INSTRUCTIONS.md)
