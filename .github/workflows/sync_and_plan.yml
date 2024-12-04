@@ -16,7 +16,7 @@ on:
 # This is necessary for GitHub to request the OIDC token
 permissions:
   id-token: write  # Required for OIDC
-  contents: write
+  contents: read
 
 jobs:
   terraformer_import:
@@ -26,6 +26,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Configure AWS OIDC
+        id: aws-oidc
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: "arn:aws:iam::582983609964:role/github-actions-oidc-role"
+          aws-region: us-west-2
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
