@@ -17,5 +17,5 @@ Instructions for the import log can be found [here](./IMPORT_LOG_INSTRUCTIONS.md
 - **Resourcse**: vpc
 - **Destination Workspace**: accounts/SBOX-9394/baseline
 - **Region**: us-west-2
-- **Import Tag**: IMPORT_12032024_2
+- **Import Tag**: IMPORT_12032024_3
 - **Description**: Importing console provisioned resources test number 2.
