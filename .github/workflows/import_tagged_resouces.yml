@@ -1,4 +1,4 @@
-name: Import Console Managed Resources
+name: Import Tagged Resources
 
 on:
   workflow_dispatch: 

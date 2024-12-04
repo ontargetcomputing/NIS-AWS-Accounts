@@ -49,7 +49,7 @@ jobs:
           # Output the filename
           echo "tfstate_file=${TFSTATE_FILE}" >> $GITHUB_OUTPUT
 
-      - name: Check the name
+      - name: Check the state file name
         run: |
           echo ${{ steps.find_tfstate.outputs.tfstate_file }}
           
