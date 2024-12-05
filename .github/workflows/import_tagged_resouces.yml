@@ -102,8 +102,8 @@ jobs:
           AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}        
         run: |
           echo "Running plan in ${{ github.event.inputs.worspace_path }}"
-          echo "Running terraformer plan aws --resources=\"$TERRAFORMER_RESOURCES\" --filter=\"Name=tags.${{ github.event.inputs.identifying_tag }}\" --regions=\"${{ github.event.inputs.aws_region }}\" --profile \"\""
-          terraformer plan aws --resources="$TERRAFORMER_RESOURCES" --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions="${{ github.event.inputs.aws_region }}" --profile ""
+          echo "Running terraformer plan aws --resources=\"$TERRAFORMER_SERVICES\" --filter=\"Name=tags.${{ github.event.inputs.identifying_tag }}\" --regions=\"${{ github.event.inputs.aws_region }}\" --profile \"\""
+          terraformer plan aws --resources="$TERRAFORMER_SERVICES" --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions="${{ github.event.inputs.aws_region }}" --profile ""
 
       - name: Show Plan
         working-directory: ${{ github.event.inputs.worspace_path }}
@@ -138,7 +138,7 @@ jobs:
         working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
         run: |
           IFS=','
-          CLEANED_RESOURCES="$TERRAFORMER_RESOURCES"
+          CLEANED_RESOURCES="$TERRAFORMER_SERVICES"
           
           for dir in $CLEANED_RESOURCES; do
             if [ -d "$dir" ]; then
@@ -159,7 +159,7 @@ jobs:
         working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
         run: |
           IFS=','
-          CLEANED_RESOURCES="$TERRAFORMER_RESOURCES"
+          CLEANED_RESOURCES="$TERRAFORMER_SERVICES"
           
           for dir in $CLEANED_RESOURCES; do
             if [ -d "$dir" ]; then
@@ -197,7 +197,7 @@ jobs:
         working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
         run: |
           IFS=','
-          CLEANED_RESOURCES="$TERRAFORMER_RESOURCES"
+          CLEANED_RESOURCES="$TERRAFORMER_SERVICES"
           
           for dir in $CLEANED_RESOURCES; do
             if [ -d "$dir" ]; then
