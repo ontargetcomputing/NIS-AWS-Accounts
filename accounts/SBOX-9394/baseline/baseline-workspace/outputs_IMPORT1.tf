@@ -1,3 +1,7 @@
-output "aws_s3_bucket_cargotank_id" {
-  value = "${aws_s3_bucket.cargotank.id}"
+output "aws_iam_policy_adarsh_id" {
+  value = "${aws_iam_policy.adarsh.id}"
+}
+
+output "aws_iam_role_balutbomber-terraform-admin-role_id" {
+  value = "${aws_iam_role.balutbomber-terraform-admin-role.id}"
 }
