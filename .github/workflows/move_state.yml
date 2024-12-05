@@ -50,13 +50,6 @@ jobs:
         run: |
           WORKSPACES=$(curl -s --header "Authorization: Bearer ${{ secrets.TERRAFORM_SESSION_TOKEN }}" "https://app.terraform.io/api/v2/projects/${{ env.PROJECT_ID }}/workspaces")
           echo "Workspaces API Response: $WORKSPACES"
-          # WORKSPACES=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/projects/${{ steps.project.outputs.project_id }}/workspaces")
-          # WORKSPACE_ID=$(echo "$WORKSPACES" | jq -r --arg WORKSPACE_NAME "${{ github.event.inputs.workspace }}" '.data[] | select(.attributes.name == $WORKSPACE_NAME) | .id')
-          # if [ -z "$WORKSPACE_ID" ]; then
-          #   echo "Error: Workspace '${{ github.event.inputs.workspace }}' not found in project '${{ github.event.inputs.project }}'."
-          #   exit 1
-          # fi
-          # echo "WORKSPACE_ID=$WORKSPACE_ID" >> $GITHUB_ENV
 
       - name: Retrieve Workspace State
         run: |
