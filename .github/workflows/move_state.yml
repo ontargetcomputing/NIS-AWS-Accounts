@@ -6,15 +6,15 @@ on:
       organization:
         description: "Terraform Cloud organization name"
         required: true
-        default: "your_organization"
+        default: "balutbomber"
       project:
         description: "Terraform Cloud project name"
         required: true
-        default: "your_project"
+        default: "nis-aws"
       workspace:
         description: "Terraform Cloud workspace name"
         required: true
-        default: "your_workspace"
+        default: "NIS-AWS-Accounts-SBOX-9394-baseline-workspace"
 
 jobs:
   retrieve-state:
@@ -29,7 +29,7 @@ jobs:
           TERRAFORM_CREDENTIALS_PATH: ${{ github.workspace }}/.terraform.d/credentials.tfrc.json
         run: |
           mkdir -p ${{ github.workspace }}/.terraform.d
-          echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TERRAFORM_API_TOKEN }}"}}}' > $TERRAFORM_CREDENTIALS_PATH
+          echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TFC_TOKEN }}"}}}' > $TERRAFORM_CREDENTIALS_PATH
 
       - name: Install jq
         run: sudo apt-get install -y jq
@@ -37,7 +37,7 @@ jobs:
       - name: Retrieve Project ID
         id: project
         run: |
-          PROJECTS=$(curl -s --header "Authorization: Bearer ${{ secrets.TERRAFORM_API_TOKEN }}" "https://app.terraform.io/api/v2/organizations/${{ github.event.inputs.organization }}/projects")
+          PROJECTS=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/organizations/${{ github.event.inputs.organization }}/projects")
           PROJECT_ID=$(echo "$PROJECTS" | jq -r --arg PROJECT_NAME "${{ github.event.inputs.project }}" '.data[] | select(.attributes.name == $PROJECT_NAME) | .id')
           if [ -z "$PROJECT_ID" ]; then
             echo "Error: Project '${{ github.event.inputs.project }}' not found in organization '${{ github.event.inputs.organization }}'."
@@ -48,7 +48,7 @@ jobs:
       - name: Retrieve Workspace ID
         id: workspace
         run: |
-          WORKSPACES=$(curl -s --header "Authorization: Bearer ${{ secrets.TERRAFORM_API_TOKEN }}" "https://app.terraform.io/api/v2/projects/${{ steps.project.outputs.project_id }}/workspaces")
+          WORKSPACES=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/projects/${{ steps.project.outputs.project_id }}/workspaces")
           WORKSPACE_ID=$(echo "$WORKSPACES" | jq -r --arg WORKSPACE_NAME "${{ github.event.inputs.workspace }}" '.data[] | select(.attributes.name == $WORKSPACE_NAME) | .id')
           if [ -z "$WORKSPACE_ID" ]; then
             echo "Error: Workspace '${{ github.event.inputs.workspace }}' not found in project '${{ github.event.inputs.project }}'."
@@ -58,7 +58,7 @@ jobs:
 
       - name: Retrieve Workspace State
         run: |
-          STATE_VERSION=$(curl -s --header "Authorization: Bearer ${{ secrets.TERRAFORM_API_TOKEN }}" "https://app.terraform.io/api/v2/workspaces/${{ steps.workspace.outputs.workspace_id }}/current-state-version")
+          STATE_VERSION=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/workspaces/${{ steps.workspace.outputs.workspace_id }}/current-state-version")
           DOWNLOAD_URL=$(echo "$STATE_VERSION" | jq -r '.data.attributes.hosted-state-download-url')
           if [ -z "$DOWNLOAD_URL" ]; then
             echo "Error: Could not retrieve state download URL for workspace '${{ github.event.inputs.workspace }}'."
@@ -67,3 +67,7 @@ jobs:
           echo "Downloading state file..."
           curl -s -o "${{ github.event.inputs.workspace }}_state.tfstate" "$DOWNLOAD_URL"
           echo "State file saved as '${{ github.event.inputs.workspace }}_state.tfstate'."
+
+      - name: Show the state
+        run: |
+          cat ${{ github.event.inputs.workspace }}_state.tfstate
