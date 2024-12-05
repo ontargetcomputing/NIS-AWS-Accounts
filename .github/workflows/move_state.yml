@@ -43,7 +43,7 @@ jobs:
             echo "Error: Project '${{ github.event.inputs.project }}' not found in organization '${{ github.event.inputs.organization }}'."
             exit 1
           fi
-          echo "::set-output name=project_id::$PROJECT_ID"
+          echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
       - name: Retrieve Workspace ID
         id: workspace
@@ -54,11 +54,11 @@ jobs:
             echo "Error: Workspace '${{ github.event.inputs.workspace }}' not found in project '${{ github.event.inputs.project }}'."
             exit 1
           fi
-          echo "::set-output name=workspace_id::$WORKSPACE_ID"
+          echo "WORKSPACE_ID=$WORKSPACE_ID" >> $GITHUB_ENV
 
       - name: Retrieve Workspace State
         run: |
-          STATE_VERSION=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/workspaces/${{ steps.workspace.outputs.workspace_id }}/current-state-version")
+          STATE_VERSION=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/workspaces/${{ env.WORKSPACE_ID }}/current-state-version")
           DOWNLOAD_URL=$(echo "$STATE_VERSION" | jq -r '.data.attributes.hosted-state-download-url')
           if [ -z "$DOWNLOAD_URL" ]; then
             echo "Error: Could not retrieve state download URL for workspace '${{ github.event.inputs.workspace }}'."
