@@ -14,7 +14,8 @@ on:
       resources:
         description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
         required: true
-        default: "accessanalyzer,acm,alb,api_gateway,appsync,autoscaling,aws_facade,aws_provider,aws_service,batch,budgets,cloud9,cloud_front,cloudformation,cloudhsm,cloudtrail,cloudwatch,codebuild,codecommit,codedeploy,codepipeline,cognito,config,customer_gateway,datapipeline,devicefarm,docdb,dynamodb,ebs,ec2,ecr,ecrpublic,ecs,efs,eip,eks,elastic_beanstalk,elasticache,elb,emr,eni,es,firehose,glue,iam,identitystore,igw,kinesis,kms,lambda,logs,media_package,media_store,mq,msk,nacl,nat_gateway,opsworks,organization,qldb,rds,redshift,resourcegroups,route53,route_table,s3,secretsmanager,securityhub,servicecatalog,ses,sfn,sg,sg_test,sns,sqs,ssm,subnet,swf,transit_gateway,vgw,vpc,vpc_endpoint,vpc_peering,vpn_connection,waf,waf_regional,wafv2,workspaces"
+        default: "Please specify resource types"
+        #default: "accessanalyzer,acm,alb,api_gateway,appsync,autoscaling,aws_facade,aws_provider,aws_service,batch,budgets,cloud9,cloud_front,cloudformation,cloudhsm,cloudtrail,cloudwatch,codebuild,codecommit,codedeploy,codepipeline,cognito,config,customer_gateway,datapipeline,devicefarm,docdb,dynamodb,ebs,ec2,ecr,ecrpublic,ecs,efs,eip,eks,elastic_beanstalk,elasticache,elb,emr,eni,es,firehose,glue,iam,identitystore,igw,kinesis,kms,lambda,logs,media_package,media_store,mq,msk,nacl,nat_gateway,opsworks,organization,qldb,rds,redshift,resourcegroups,route53,route_table,s3,secretsmanager,securityhub,servicecatalog,ses,sfn,sg,sg_test,sns,sqs,ssm,subnet,swf,transit_gateway,vgw,vpc,vpc_endpoint,vpc_peering,vpn_connection,waf,waf_regional,wafv2,workspaces"
       identifying_tag:
         description: 'The tag used to identify the resources to import'
         required: true
