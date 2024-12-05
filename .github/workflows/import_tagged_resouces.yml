@@ -11,10 +11,10 @@ on:
           - 'Please choose a workspace'
           - accounts/SBOX-9394/baseline/baseline-workspace
         default: 'Please choose a workspace'
-      # resources:
-      #   description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
-      #   required: true
-      #   default: "Please specify"
+      resources:
+        description: 'resources - see https://github.com/GoogleCloudPlatform/terraformer'
+        required: true
+        default: "accessanalyzer,acm,alb,api_gateway,appsync,autoscaling,aws_facade,aws_provider,aws_service,batch,budgets,cloud9,cloud_front,cloudformation,cloudhsm,cloudtrail,cloudwatch,codebuild,codecommit,codedeploy,codepipeline,cognito,config,customer_gateway,datapipeline,devicefarm,docdb,dynamodb,ebs,ec2,ecr,ecrpublic,ecs,efs,eip,eks,elastic_beanstalk,elasticache,elb,emr,eni,es,firehose,glue,iam,identitystore,igw,kinesis,kms,lambda,logs,media_package,media_store,mq,msk,nacl,nat_gateway,opsworks,organization,qldb,rds,redshift,resourcegroups,route53,route_table,s3,secretsmanager,securityhub,servicecatalog,ses,sfn,sg,sg_test,sns,sqs,ssm,subnet,swf,transit_gateway,vgw,vpc,vpc_endpoint,vpc_peering,vpn_connection,waf,waf_regional,wafv2,workspaces"
       identifying_tag:
         description: 'The tag used to identify the resources to import'
         required: true
@@ -32,8 +32,6 @@ permissions:
 jobs:
   terraformer_import:
     runs-on: ubuntu-latest
-    env:
-      TERRAFORMER_SERVICES: "accessanalyzer,acm,alb,api_gateway,appsync,autoscaling,aws_facade,aws_provider,aws_service,batch,budgets,cloud9,cloud_front,cloudformation,cloudhsm,cloudtrail,cloudwatch,codebuild,codecommit,codedeploy,codepipeline,cognito,config,customer_gateway,datapipeline,devicefarm,docdb,dynamodb,ebs,ec2,ecr,ecrpublic,ecs,efs,eip,eks,elastic_beanstalk,elasticache,elb,emr,eni,es,firehose,glue,iam,identitystore,igw,kinesis,kms,lambda,logs,media_package,media_store,mq,msk,nacl,nat_gateway,opsworks,organization,qldb,rds,redshift,resourcegroups,route53,route_table,s3,secretsmanager,securityhub,servicecatalog,ses,sfn,sg,sg_test,sns,sqs,ssm,subnet,swf,transit_gateway,vgw,vpc,vpc_endpoint,vpc_peering,vpn_connection,waf,waf_regional,wafv2,workspaces"
     # Run only if not on main branch
     if: github.ref != 'refs/heads/main'  
     steps:
@@ -76,20 +74,20 @@ jobs:
         run: |
           terraform init
 
-      # - name: Display original resources input
-      #   run: |
-      #     echo "Original resources input: '${{ github.event.inputs.resources }}'"
+      - name: Display original resources input
+        run: |
+          echo "Original resources input: '${{ github.event.inputs.resources }}'"
 
-      # - name: Remove all whitespace from resources input
-      #   id: clean_input
-      #   run: |
-      #     # Remove all whitespace using sed
-      #     cleaned_resources=$(echo "${{ github.event.inputs.resources }}" | sed 's/[[:space:]]//g')
-      #     echo "cleaned_resources=$cleaned_resources" >> $GITHUB_OUTPUT
+      - name: Remove all whitespace from resources input
+        id: clean_input
+        run: |
+          # Remove all whitespace using sed
+          cleaned_resources=$(echo "${{ github.event.inputs.resources }}" | sed 's/[[:space:]]//g')
+          echo "cleaned_resources=$cleaned_resources" >> $GITHUB_OUTPUT
       
-      # - name: Show cleaned input
-      #   run: |
-      #     echo "Resouces input with all whitespace removed: '${{ steps.clean_input.outputs.cleaned_resources }}'"
+      - name: Show cleaned input
+        run: |
+          echo "Resouces input with all whitespace removed: '${{ steps.clean_input.outputs.cleaned_resources }}'"
 
       # Run Terraformer to generate the terraformer plan
       # NOTICE the '--profile ""' on the terraformer plan call.  There was an issue when that is not included.
@@ -102,8 +100,8 @@ jobs:
           AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}        
         run: |
           echo "Running plan in ${{ github.event.inputs.worspace_path }}"
-          echo "Running terraformer plan aws --resources=\"$TERRAFORMER_RESOURCES\" --filter=\"Name=tags.${{ github.event.inputs.identifying_tag }}\" --regions=\"${{ github.event.inputs.aws_region }}\" --profile \"\""
-          terraformer plan aws --resources="$TERRAFORMER_RESOURCES" --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions="${{ github.event.inputs.aws_region }}" --profile ""
+          echo "Running terraformer plan aws --resources=\"${{ steps.clean_input.outputs.cleaned_resources }}\" --filter=\"Name=tags.${{ github.event.inputs.identifying_tag }}\" --regions=\"${{ github.event.inputs.aws_region }}\" --profile \"\""
+          terraformer plan aws --resources="${{ steps.clean_input.outputs.cleaned_resources }}" --filter="Name=tags.${{ github.event.inputs.identifying_tag }}" --regions="${{ github.event.inputs.aws_region }}" --profile ""
 
       - name: Show Plan
         working-directory: ${{ github.event.inputs.worspace_path }}
@@ -138,7 +136,7 @@ jobs:
         working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
         run: |
           IFS=','
-          CLEANED_RESOURCES="$TERRAFORMER_RESOURCES"
+          CLEANED_RESOURCES="${{ steps.clean_input.outputs.cleaned_resources }}"
           
           for dir in $CLEANED_RESOURCES; do
             if [ -d "$dir" ]; then
@@ -159,7 +157,7 @@ jobs:
         working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
         run: |
           IFS=','
-          CLEANED_RESOURCES="$TERRAFORMER_RESOURCES"
+          CLEANED_RESOURCES="${{ steps.clean_input.outputs.cleaned_resources }}"
           
           for dir in $CLEANED_RESOURCES; do
             if [ -d "$dir" ]; then
@@ -197,7 +195,7 @@ jobs:
         working-directory: "${{ github.event.inputs.worspace_path }}/generated/aws"
         run: |
           IFS=','
-          CLEANED_RESOURCES="$TERRAFORMER_RESOURCES"
+          CLEANED_RESOURCES="${{ steps.clean_input.outputs.cleaned_resources }}"
           
           for dir in $CLEANED_RESOURCES; do
             if [ -d "$dir" ]; then
