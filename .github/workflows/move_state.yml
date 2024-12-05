@@ -38,6 +38,7 @@ jobs:
         id: project
         run: |
           PROJECTS=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/organizations/${{ github.event.inputs.organization }}/projects")
+          echo "Workspaces API Response: $PROJECTS"
           PROJECT_ID=$(echo "$PROJECTS" | jq -r --arg PROJECT_NAME "${{ github.event.inputs.project }}" '.data[] | select(.attributes.name == $PROJECT_NAME) | .id')
           if [ -z "$PROJECT_ID" ]; then
             echo "Error: Project '${{ github.event.inputs.project }}' not found in organization '${{ github.event.inputs.organization }}'."
