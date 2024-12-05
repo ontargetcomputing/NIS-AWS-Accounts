@@ -7,10 +7,10 @@ on:
         description: "Terraform Cloud organization name"
         required: true
         default: "balutbomber"
-      project:
-        description: "Terraform Cloud project name"
-        required: true
-        default: "nis-aws"
+      # project:
+      #   description: "Terraform Cloud project name"
+      #   required: true
+      #   default: "nis-aws"
       workspace:
         description: "Terraform Cloud workspace name"
         required: true
@@ -34,37 +34,42 @@ jobs:
       - name: Install jq
         run: sudo apt-get install -y jq
 
-      - name: Retrieve Project ID
-        id: project
-        run: |
-          PROJECTS=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/organizations/${{ github.event.inputs.organization }}/projects")
-          echo "API Response: $PROJECTS"
-          PROJECT_ID=$(echo "$PROJECTS" | jq -r --arg PROJECT_NAME "${{ github.event.inputs.project }}" '.data[] | select(.attributes.name == $PROJECT_NAME) | .id')
-          if [ -z "$PROJECT_ID" ]; then
-            echo "Error: Project '${{ github.event.inputs.project }}' not found in organization '${{ github.event.inputs.organization }}'."
-            exit 1
-          fi
-          echo "PROJECT ID: $PROJECT_ID"
-          echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+      # - name: Retrieve Project ID
+      #   id: project
+      #   run: |
+      #     PROJECTS=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/organizations/${{ github.event.inputs.organization }}/projects")
+      #     PROJECT_ID=$(echo "$PROJECTS" | jq -r --arg PROJECT_NAME "${{ github.event.inputs.project }}" '.data[] | select(.attributes.name == $PROJECT_NAME) | .id')
+      #     if [ -z "$PROJECT_ID" ]; then
+      #       echo "Error: Project '${{ github.event.inputs.project }}' not found in organization '${{ github.event.inputs.organization }}'."
+      #       exit 1
+      #     fi
+      #     echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
 
       - name: Retrieve Workspace ID
         id: workspace
         run: |
-          WORKSPACES=$(curl -s --header "Authorization: Bearer ${{ secrets.TERRAFORM_SESSION_TOKEN }}" "https://app.terraform.io/api/v2/projects/${{ env.PROJECT_ID }}/workspaces")
-          echo "Workspaces API Response: $WORKSPACES"
+          WORKSPACES=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/organizations/${{ github.event.inputs.organization }}/workspaces/${{ github.event.inputs.workspace }}")
+          WORKSPACE_ID=$(echo "$WORKSPACES" | jq -r --arg WORKSPACE_NAME "${{ github.event.inputs.workspace }}" '.data[] | select(.attributes.name == $WORKSPACE_NAME) | .id')
+          if [ -z "$WORKSPACE_ID" ]; then
+            echo "Error: Workspace '${{ github.event.inputs.workspace }}' not found in project '${{ github.event.inputs.project }}'."
+            exit 1
+          fi
+          echo $WORKSPACE_ID
+          echo "WORKSPACE_ID=$WORKSPACE_ID" >> $GITHUB_ENV
 
       - name: Retrieve Workspace State
         run: |
+          echo "Checking state for workspace ID: ${{ env.WORKSPACE_ID }}..."
           STATE_VERSION=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/workspaces/${{ env.WORKSPACE_ID }}/current-state-version")
-          DOWNLOAD_URL=$(echo "$STATE_VERSION" | jq -r '.data.attributes.hosted-state-download-url')
-          if [ -z "$DOWNLOAD_URL" ]; then
-            echo "Error: Could not retrieve state download URL for workspace '${{ github.event.inputs.workspace }}'."
-            exit 1
-          fi
-          echo "Downloading state file..."
-          curl -s -o "${{ github.event.inputs.workspace }}_state.tfstate" "$DOWNLOAD_URL"
-          echo "State file saved as '${{ github.event.inputs.workspace }}_state.tfstate'."
 
-      - name: Show the state
-        run: |
-          cat ${{ github.event.inputs.workspace }}_state.tfstate
+          # Check if the workspace has state
+          DOWNLOAD_URL=$(echo "$STATE_VERSION" | jq -r '.data.attributes.hosted-state-download-url // empty')
+          
+          if [ -z "$DOWNLOAD_URL" ]; then
+            echo "No state available for workspace '${{ github.event.inputs.workspace }}'."
+            echo "State file not downloaded."
+          else
+            echo "State found. Downloading state file..."
+            curl -s -o "${{ github.event.inputs.workspace }}_state.tfstate" "$DOWNLOAD_URL"
+            echo "State file saved as '${{ github.event.inputs.workspace }}_state.tfstate'."
+          fi
