@@ -45,7 +45,7 @@ jobs:
       - name: Retrieve Workspace ID
         id: workspace
         run: |
-          WORKSPACES=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/organizations/${{ github.event.inputs.organization }}/workspaces/${{ github.event.inputs.workspace }}")
+          WORKSPACES=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/organizations/${{ github.event.inputs.organization }}/workspaces/${{ github.event.inputs.workspace-to-import }}")
           echo $WORKSPACES
           WORKSPACE_ID=$(echo "$WORKSPACES" | jq -r '.data.id')
           if [ -z "$WORKSPACE_ID" ]; then
