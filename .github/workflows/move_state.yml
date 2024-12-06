@@ -119,14 +119,13 @@ jobs:
         working-directory: "${{ github.event.inputs.worspace_path }}/.ci"
         run: |
           terraform output -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate -json | jq '{outputs: .}' > outputs.json
-          ls -al
 
       - name: Inject outputs into destination state
+        working-directory: "${{ github.event.inputs.worspace_path }}"
         run: |
           ls -al
           jq --slurpfile outputs .ci/outputs.json '.outputs += $outputs[0].outputs' destination_terraform.tfstate > destination_terraform_updated.tfstate  
           mv destination_terraform_updated.tfstate destination_terraform.tfstate
-          
 
       - name: Show the state that was imported ( should be empty now )
         working-directory: "${{ github.event.inputs.worspace_path }}"
