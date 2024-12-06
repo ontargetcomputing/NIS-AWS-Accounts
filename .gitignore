@@ -47,3 +47,4 @@ generated/
 Pipfile
 
 .ci/
+.imported_repo/
