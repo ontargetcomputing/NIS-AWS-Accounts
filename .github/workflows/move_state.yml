@@ -62,11 +62,15 @@ jobs:
         run: |
           echo "Checking state for workspace ID: ${{ env.WORKSPACE_ID }}..."
           STATE_VERSION=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/workspaces/${{ env.WORKSPACE_ID }}/current-state-version")
+          echo "**********CURRENT STATE VERSION"
           echo $STATE_VERSION
-          
+          echo "********************************"
           # Check if the workspace has state
           DOWNLOAD_URL=$(echo "$STATE_VERSION" | jq -r '.data.attributes["hosted-state-download-url"] // empty')
+          echo "**********DOWNLOAD_URL"
+          echo $DOWNLOAD_URL
           echo "********************************"
+          
           if [ -z "$DOWNLOAD_URL" ]; then
             echo "No state available for workspace '${{ github.event.inputs.workspace }}'."
             echo "State file not downloaded."
