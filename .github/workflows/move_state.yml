@@ -3,6 +3,14 @@ name: Get Terraform Cloud Workspace State
 on:
   workflow_dispatch: # Allows manual triggering of the workflow
     inputs:
+      worspace_path:
+        description: 'The path to the workspace to import into'
+        required: true
+        type: choice
+        options:
+          - 'Please choose a workspace'
+          - accounts/SBOX-9394/baseline/baseline-workspace
+        default: 'Please choose a workspace'      
       organization:
         description: "Terraform Cloud organization name"
         required: true
@@ -11,7 +19,7 @@ on:
       #   description: "Terraform Cloud project name"
       #   required: true
       #   default: "nis-aws"
-      workspace:
+      workspace-to-import:
         description: "Terraform Cloud workspace name"
         required: true
         default: "NIS-AWS-Accounts-SBOX-9394-baseline-workspace"
@@ -41,13 +49,14 @@ jobs:
           echo $WORKSPACES
           WORKSPACE_ID=$(echo "$WORKSPACES" | jq -r '.data.id')
           if [ -z "$WORKSPACE_ID" ]; then
-            echo "Error: Workspace '${{ github.event.inputs.workspace }}' not found in project '${{ github.event.inputs.project }}'."
+            echo "Error: Workspace '${{ github.event.inputs.workspace-to-import }}' not found in project '${{ github.event.inputs.project }}'."
             exit 1
           fi
           echo $WORKSPACE_ID
           echo "WORKSPACE_ID=$WORKSPACE_ID" >> $GITHUB_ENV
 
       - name: Retrieve Workspace State
+        working-directory: "${{ github.event.inputs.worspace_path }}"      
         run: |
           echo "Checking state for workspace ID: ${{ env.WORKSPACE_ID }}..."
           STATE_VERSION=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" --location "https://app.terraform.io/api/v2/workspaces/${{ env.WORKSPACE_ID }}/current-state-version")
@@ -61,16 +70,56 @@ jobs:
           echo "********************************"
           
           if [ -z "$DOWNLOAD_URL" ]; then
-            echo "No state available for workspace '${{ github.event.inputs.workspace }}'."
+            echo "No state available for workspace '${{ github.event.inputs.workspace-to-import }}'."
             echo "State file not downloaded."
           else
             echo "State found. Downloading state file..."
-            curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" --location "$DOWNLOAD_URL" -o "${{ github.event.inputs.workspace }}_state.tfstate"
-            cat ${{ github.event.inputs.workspace }}_state.tfstate
-            echo "State file saved as '${{ github.event.inputs.workspace }}_state.tfstate'."
+            curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" --location "$DOWNLOAD_URL" -o "${{ github.event.inputs.workspace-to-import }}_state.tfstate"
+            echo "State file saved as '${{ github.event.inputs.workspace-to-import }}_state.tfstate'."
           fi
 
-      - name: Test
+      - name: Show State to import
+        working-directory: "${{ github.event.inputs.worspace_path }}"      
         run: |
-          ls -al
-          cat NIS-AWS-Accounts-SBOX-9394-baseline-workspace_state.tfstate
+          cat ${{ github.event.inputs.workspace-to-import }}_state.tfstate
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
+
+      # Run terraform init to setup
+      - name: Run terraform init
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform init
+
+      - name: Pull the current terraform state from terraform cloud
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform state pull > destination_terraform.tfstate
+
+      - name: List the resources to be imported
+        working-directory: "${{ github.event.inputs.worspace_path }}"
+        run: |
+            terraform state list -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate > ${{ github.event.inputs.workspace-to-import }})_resources.txt
+            cat ${{ github.event.inputs.workspace-to-import }})_resources.txt
+
+      - name: Move each of the imported resources into the current state
+        working-directory: "${{ github.event.inputs.worspace_path }}"
+        run: |
+            IFS=' '
+            while IFS= read -r resource; do
+            terraform state mv -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate -state-out=destination_terraform.tfstate "$resource" "$resource"
+            done < ${{ github.event.inputs.workspace-to-import }})_resources.txt
+
+      - name: Show the state that was imported ( should be empty now )
+        working-directory: "${{ github.event.inputs.worspace_path }}"
+        run: |
+            cat ${{ github.event.inputs.workspace-to-import }}_state.tfstate
+
+      - name: Show the new destination state ( should include all the resources )
+        working-directory: "${{ github.event.inputs.worspace_path }}"
+        run: |
+            cat destination_terraform.tfstate 
