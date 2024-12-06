@@ -104,7 +104,7 @@ jobs:
         working-directory: "${{ github.event.inputs.worspace_path }}"
         run: |
             terraform state list -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate > ${{ github.event.inputs.workspace-to-import }}_resources.txt
-            cat ${{ github.event.inputs.workspace-to-import }})_resources.txt
+            cat ${{ github.event.inputs.workspace-to-import }}_resources.txt
 
       - name: Move each of the imported resources into the current state
         working-directory: "${{ github.event.inputs.worspace_path }}"
@@ -112,7 +112,7 @@ jobs:
             IFS=' '
             while IFS= read -r resource; do
             terraform state mv -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate -state-out=destination_terraform.tfstate "$resource" "$resource"
-            done < ${{ github.event.inputs.workspace-to-import }})_resources.txt
+            done < ${{ github.event.inputs.workspace-to-import }}_resources.txt
 
       - name: Show the state that was imported ( should be empty now )
         working-directory: "${{ github.event.inputs.worspace_path }}"
