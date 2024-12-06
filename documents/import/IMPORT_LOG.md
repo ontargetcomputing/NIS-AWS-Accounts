@@ -4,26 +4,11 @@ Instructions for the import log can be found [here](./IMPORT_LOG_INSTRUCTIONS.md
 
 ## Entries
 
-### Import Entry - 2024-12-03
+### Import Entry - 2024-12-05
 
 - **Resourcse**: vpc, s3
 - **Destination Workspace**: accounts/SBOX-9394/baseline
 - **Region**: us-west-2
-- **Import Tag**: IMPORT_12032024
+- **Import Tag**: IMPORT_DEMO
 - **Description**: Importing console provisioned resources test.
 
-### Import Entry - 2024-12-03.2
-
-- **Resourcse**: vpc
-- **Destination Workspace**: accounts/SBOX-9394/baseline
-- **Region**: us-west-2
-- **Import Tag**: IMPORT_12032024_3
-- **Description**: Importing console provisioned resources test number 2.
-
-### Import Entry - 2024-12-05.1
-
-- **Resourcse**: vpc
-- **Destination Workspace**: accounts/SBOX-9394/baseline
-- **Region**: us-west-2
-- **Import Tag**: IMPORT_12032024_3
-- **Description**: Importing console provisioned resources test number 2.
