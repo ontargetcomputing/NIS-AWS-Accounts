@@ -103,7 +103,7 @@ jobs:
       - name: List the resources to be imported
         working-directory: "${{ github.event.inputs.worspace_path }}"
         run: |
-            terraform state list -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate > ${{ github.event.inputs.workspace-to-import }})_resources.txt
+            terraform state list -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate > ${{ github.event.inputs.workspace-to-import }}_resources.txt
             cat ${{ github.event.inputs.workspace-to-import }})_resources.txt
 
       - name: Move each of the imported resources into the current state
