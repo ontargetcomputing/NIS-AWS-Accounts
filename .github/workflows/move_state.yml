@@ -72,7 +72,7 @@ jobs:
             echo "State file not downloaded."
           else
             echo "State found. Downloading state file..."
-            curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "$DOWNLOAD_URL"
+            echo $(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "$DOWNLOAD_URL")
             echo "State file saved as '${{ github.event.inputs.workspace }}_state.tfstate'."
           fi
 
