@@ -118,11 +118,11 @@ jobs:
       - name: Export outputs from source state
         working-directory: "${{ github.event.inputs.worspace_path }}/.ci"
         run: |
-          terraform output -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate -json > outputs.json
+          terraform output -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate -json | jq '{outputs: .}' > outputs.json
 
       - name: Inject outputs into destination state
         run: |
-          jq --argfile outputs .ci/outputs.json '.outputs += $outputs' destination_terraform.tfstate > destination_terraform_updated.tfstate
+          jq --slurpfile outputs .ci/outputs.json '.outputs += $outputs[0].outputs' destination_terraform.tfstate > destination_terraform_updated.tfstate  
           mv destination_terraform_updated.tfstate destination_terraform.tfstate
 
       - name: Show the state that was imported ( should be empty now )
