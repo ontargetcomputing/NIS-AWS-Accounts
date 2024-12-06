@@ -80,3 +80,4 @@ jobs:
       - name: Test
         run: |
           ls -al
+          cat NIS-AWS-Accounts-SBOX-9394-baseline-workspace_state.tfstate
