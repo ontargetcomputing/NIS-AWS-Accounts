@@ -89,6 +89,12 @@ jobs:
           terraform_version: 1.9.8
           cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
 
+      - name: List the resources to be imported
+        working-directory: "${{ github.event.inputs.worspace_path }}"
+        run: |
+            terraform state list -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate > ${{ github.event.inputs.workspace-to-import }}_resources.txt
+            cat ${{ github.event.inputs.workspace-to-import }}_resources.txt
+
       # Run terraform init to setup
       - name: Run terraform init
         working-directory: ${{ github.event.inputs.worspace_path }}
@@ -99,12 +105,6 @@ jobs:
         working-directory: ${{ github.event.inputs.worspace_path }}
         run: |
           terraform state pull > destination_terraform.tfstate
-
-      - name: List the resources to be imported
-        working-directory: "${{ github.event.inputs.worspace_path }}"
-        run: |
-            terraform state list -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate > ${{ github.event.inputs.workspace-to-import }}_resources.txt
-            cat ${{ github.event.inputs.workspace-to-import }}_resources.txt
 
       - name: Move each of the imported resources into the current state
         working-directory: "${{ github.event.inputs.worspace_path }}"
