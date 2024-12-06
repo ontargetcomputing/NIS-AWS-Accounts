@@ -113,7 +113,7 @@ jobs:
             IFS=' '
             while IFS= read -r resource; do
             terraform state mv -state=.ci/${{ github.event.inputs.workspace-to-import }}_state.tfstate -state-out=destination_terraform.tfstate "$resource" "$resource"
-            done < ${{ github.event.inputs.workspace-to-import }}_resources.txt
+            done < .ci/${{ github.event.inputs.workspace-to-import }}_resources.txt
 
       - name: Show the state that was imported ( should be empty now )
         working-directory: "${{ github.event.inputs.worspace_path }}"
