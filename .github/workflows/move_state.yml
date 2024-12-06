@@ -67,6 +67,7 @@ jobs:
             echo "State found. Downloading state file..."
             DATA=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" --location "$DOWNLOAD_URL")
             echo $DATA
+            cat $DATA > ${{ github.event.inputs.workspace }}_state.tfstate
             echo "State file saved as '${{ github.event.inputs.workspace }}_state.tfstate'."
           fi
 
