@@ -66,7 +66,7 @@ jobs:
           echo $STATE_VERSION
           
           # Check if the workspace has state
-          DOWNLOAD_URL=$(echo "$STATE_VERSION" | jq -r '.data.attributes.hosted-state-download-url // empty')
+          DOWNLOAD_URL=$(echo "$STATE_VERSION" | jq -r '.data.attributes["hosted-state-download-url"] // empty')
           
           if [ -z "$DOWNLOAD_URL" ]; then
             echo "No state available for workspace '${{ github.event.inputs.workspace }}'."
