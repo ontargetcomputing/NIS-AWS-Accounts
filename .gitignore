@@ -45,3 +45,5 @@ generated/
 .envrc
 
 Pipfile
+
+.ci/
