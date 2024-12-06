@@ -22,7 +22,7 @@ on:
       workspace-to-import:
         description: "Terraform Cloud workspace name"
         required: true
-        default: "NIS-AWS-Accounts-SBOX-9394-baseline-workspace"
+        default: "tf-prefix-list"
 
 jobs:
   retrieve-state:
