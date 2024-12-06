@@ -76,3 +76,7 @@ jobs:
             curl -s -o "${{ github.event.inputs.workspace }}_state.tfstate" "$DOWNLOAD_URL"
             echo "State file saved as '${{ github.event.inputs.workspace }}_state.tfstate'."
           fi
+
+      - name: Test
+        run: |
+          ls -al
