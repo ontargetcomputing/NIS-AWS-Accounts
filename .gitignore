@@ -48,3 +48,4 @@ Pipfile
 
 .ci/
 .imported_repo/
+.terraform.d/
