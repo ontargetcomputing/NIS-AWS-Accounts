@@ -145,6 +145,10 @@ jobs:
           path: .imported_repo
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Show the imported repo
+        run: |
+          find .imported_repo -type f
+
       - name: Copy Terraform files
         run: |
           cp -r .imported_repo/**/*.tf ./${{ github.event.inputs.worspace_path }}/${{ github.event.inputs.workspace-to-import }}/
