@@ -151,6 +151,7 @@ jobs:
 
       - name: Copy Terraform files
         run: |
+          shopt -s globstar
           cp -r .imported_repo/**/*.tf ./${{ github.event.inputs.worspace_path }}/${{ github.event.inputs.workspace-to-import }}/
 
       - name: Commit and push Terraform files
