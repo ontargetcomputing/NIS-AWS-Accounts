@@ -1,154 +1,178 @@
-# How to Import Resources via Import tag
-This guide provides instructions for importing AWS resources which have a unique tag associated with them to signify they should be imported.
-This process is used for both console provisioned resources and CloudFormation provisioned resources.
+# How to Import Resources via Import Tag
+
+This guide provides detailed instructions for importing AWS resources tagged with a unique identifier to signify they should be imported. This process is used for both console-provisioned and CloudFormation-provisioned resources.
 
 ## Steps for Importing Resources via Unique Tag
-### 1. Identify and Tag the Resources to Import
+### Identify and Tag the Resources to Import
 
-1. Determine which AWS resources need to be imported. Gather details such as:
-	- **Resource type** (e.g., VPC, EC2 instance, S3 bucket)
-	- **AWS Region** where the resource resides
-	- **Resource identifiers** (e.g., instance IDs, bucket names)
+1. **Determine Resources to Import**: Gather the following details for each resource:
+   - **Resource type** (e.g., VPC, EC2 instance, S3 bucket)
+   - **AWS Region** where the resource resides
+   - **Resource identifiers** (e.g., instance IDs, bucket names)
 
-**NOTE:** While it is possible for a terraform workspace to manage resources in separate accounts and regions, our process does not currently support that so all resources must all be in the same AWS **and** within the same region.  
+   **NOTE**: While Terraform workspaces can manage resources across accounts and regions, this process currently supports only single-account, single-region imports. Future enhancements may allow for multi-account/region imports.
+   
 
-Future enhancements may be developed to allow for multi account/region management.
+### Tagging Resources for Import
 
-### 2. Tagging Resources for Import
+Two tags are required for this process:
 
-There are 2 tags that will be need for this process:
+1. **Import Tag**: A unique tag to identify resources for import. Terraformer uses this tag to filter and select the resources.
+2. **Name Tag**: The value of this tag will be used to name the imported resource in the generated Terraform configuration.
 
-1. A tag to identify a resources as part of the import.
-To selectively import resources using Terraformer, we’ll use the `--filter="Name=tags.<TAG_NAME>"` option. This approach allows you to import only the resources tagged with a specific, unique tag name, ensuring that Terraformer only includes the intended resources in its plan.
+#### Steps to Tag Resources for Import:
 
-2. A tag called **Name**.  The value of this tag will be used to name the imported resource in the generated terraform configuration.
-
-#### Steps to Tag Resources for Import
-
-1. **Choose a Unique Tag Name**:  
-   Select a unique tag key that will be used to identify the resources you want to import. For example, use `IMPORT1`, `IMPORT_DEV`, or `TF_IMPORT_DATE` as the tag key. This key should be distinctive to avoid accidentally including resources not meant for import.
+1. **Choose a Unique Import Tag**:  
+   Select a distinctive tag key (e.g., `IMPORT_10302024`) to identify the resources for import. Ensure it’s specific to avoid unintended imports.
 
 2. **Apply Tags to Resources**:  
-
-   In the AWS Console, find each resource you want to import then:
-   
-   1. Add a tag with the chosen key. For instance, if you chose `IMPORTS_10302024 ` as your tag name, apply this tag to every resource you intend to import.
-
-	   - **Tag Key**: Use the unique tag key you chose (e.g., `IMPORTS_10302024`).
-	   - **Tag Value**: You may leave the value blank or set a descriptive value if preferred.
-	
-	   Example tag:
-	   - **Key**: `IMPORTS_10302024 `
-	   - **Value**: `OptionalDescription`
-  
-   2. Add a **Name** tag with an appropriate value.
-  
-### 3. Open a PR against *main* and Update the Import Log
+   In the AWS Console:
+   - Add the **Import Tag** to each resource:
+     - **Key**: `IMPORT_10302024`
+     - **Value**: Optional but can be descriptive.
+   - Add a **Name Tag** with a meaningful value for each resource.
+     
+### Open a Pull Request and Update the Import Log
 
 1. **Create a new branch**
 	
-	```sh
-	git branch -b %branch_name%
+	```bash
+	git branch -b <branch_name>
 	```
-2. **Update the Import Log**:  
-   In the PR, update an [Import Log](./IMPORT_LOG.md) file to document the resources you plan to import. Follow the import log [instructions](./IMPORT_LOG_INSTRUCTIONS.md)
-3. **Commit the changes and push to central repository**
+1. **Update the Import Log**:  
+   Update the [Import Log](./IMPORT_LOG.md) with details of the resources to be imported. Follow the [Import Log Instructions](./IMPORT_LOG_INSTRUCTIONS.md).
+  
+1. **Commit the changes and push to central repository**
 	
-	```sh
+	```bash
 	git add .
-	git commit -m "updated import log with import specifics"
-	git push origin %branch_name%
+	git commit -m "Updated import log for <TAG_NAME>"
+	git	 push origin <branch_name>
 	```
 1. **Open a Pull Request (PR)**:  
-   Log into github and open a new pull request for your new branch against *main* in your repository. 
+   Open a new PR in GitHub targeting the main branch.
 
+### Trigger the Import Workflow
 
-### 4. Trigger the Import Workflow from the pull request
+1. **Navigate to GitHub Actions**:  
+   In your GitHub repository, go to the **Actions** tab and locate the [1 - Import Tagged Resources Workflow](../../.github/workflows/import_tagged_resources.yml).
 
-In the GitHub repository, navigate to **Actions** and manually trigger the [1 - Import Tagged Resources](../../.github/workflows/import_tagged_resources.yml) workflow designed for importing resources. When prompted, provide the necessary inputs:
+2. **Choose the Correct Branch**:  
+   When triggering the workflow, ensure you select the branch associated with your pull request. This ensures the workflow operates on the intended changes.
 
+3. **Provide Workflow Inputs**:  
+   When prompted, provide the following inputs:
+   - **Workspace Path**:  
+     Select the Terraform workspace path corresponding to the resource’s environment. This is a dropdown list—choose the correct value based on the account and environment for the resources being imported.
+   - **Resources**:  
+     Provide a comma-separated list of resource types to import (e.g., `vpc,s3`).  
+     **Important**:  
+       - Do not include spaces in the list (e.g., use `vpc,s3`, not `vpc, s3`).
+       - Avoid using the `*` wildcard due to a known Terraformer bug.
+   - **AWS Region**:  
+     Specify the AWS region where the resources are located (e.g., `us-west-2`).
 
-- **Workspace Path**: Select the Terraform workspace path that matches the resource’s environment.  This is a select list, so choose the appropriate value for the account your are importing from.
-- **Resources**: A comma delimited list of the resource types you wish to import.  You can see a list of the available values [here](https://github.com/GoogleCloudPlatform/terraformer/tree/master/providers/aws).
-	- **NOTE**: There seems to be a terraformer bug when using '*'. Please do not use.
-	- The comma delimited list cannot have spaces in it eg. "vpc,s3" not "vpc, s3"
-	 
-- **AWS Region**: Specify the region where the resource is located.
-
-**Note**: Ensure this workflow is triggered within an open PR. If there is no active PR, the workflow will not execute.
-
-The workflow will perform the follow tasks:
-
-- **Plan the Import with Terraformer**
-
-	The GitHub Action will execute Terraformer to generate a plan for the specified resources. Terraformer scans AWS for the specified resource type and outputs a `plan.json` file, detailing the resource configuration.
-
-- **Run `scripts/cook_plan.py` to Prepare the Plan**
-
-	The `cook_plan.py` script modifies the `plan.json` file to improve resource naming:
-	- **Name Tag Check**: It ensures each resource has a `Name` tag. If a resource lacks a `Name` tag, the script will exit, and you’ll need to add a `Name` tag in AWS.
-	- **Rename Resources**: For resources with a `Name` tag, the script updates the `ResourceName` to use this tag, providing more meaningful names in Terraform.
-
--  **Combine original state and imported state local state file**
-	- The local state file is located at `<Workspace_Path>/terraform_<TAG_NAME>.tfstate`
-
--  **Create .tf files for the imported resources**
-	- The .tf files are located at `<Workspace_Path>/<Resource_Type>_<TAG_NAME>.tf`
-
--  **Commit new files to the PR/branch**
-	- The created files are pushed into your branch.
+	**Note**: Double-check the following before starting the workflow:
 	
--  **Run Terraform Plan**
-	- The plan is run.  The hope is there are no issues, however, terraform  is built on the idea of separating state and configuration. Because of this, only the state is stored, configuration is not and must be generated programatically.  There is a high probobility that you will need to correct issues in the generated configuration.  
+	- You’ve selected the correct branch.
+	- The workspace path matches the resource’s environment.
+	- The resource list is accurate and formatted correctly (comma-separated, no spaces).
+	- The AWS region is correct for the resources being imported.
 
-### 5. Fix configuration
+5. **What the Workflow Does**:  
+   The workflow will perform the following actions:
+   - **Plan Import with Terraformer**:  
+     Runs Terraformer to generate a `plan.json` file for the specified resources.
+   - **Run `cook_plan.py`**:  
+     Processes the `plan.json` file to:
+     - Ensure each resource has a `Name` tag.
+     - Update resource names using the `Name` tag for more meaningful identifiers.
+     - Exit with an error if any resource lacks a `Name` tag, requiring you to add it in AWS.
+   - **Generate Configuration Files**:  
+     Creates `.tf` files for the imported resources in the following format:
+     - State file: `<Workspace_Path>/terraform_<TAG_NAME>.tfstate`
+     - Configuration files: `<Workspace_Path>/<Resource_Type>_<TAG_NAME>.tf`
+   - **Commit Files to the PR**:  
+     Pushes the generated state and configuration files to the branch associated with the PR.
+   - **Run Terraform Plan**:  
+     Executes a `terraform plan` to detect potential issues in the generated configuration. Note that due to how Terraform separates state and configuration, you may need to manually fix the `.tf` files to resolve issues.
 
-If the plan run in the action above results in issues, you must fix them.
+6. **Monitor Workflow Logs**:  
+   Check the workflow logs for any errors or warnings. Address issues as needed before proceeding to the next step.
 
-```bash
+---
 
-git pull --rebase origin <branch_name>
-cd <Workspace_Path>
-terraform init
+### Common Workflow Errors and Resolutions
 
-### REPEAT BELOW UNTIL SUCCESSFUL PLAN
+- **Error: Missing `Name` Tag**  
+  - **Cause**: A resource does not have a `Name` tag, which is required for the `cook_plan.py` script to process the plan.  
+  - **Solution**: Add a `Name` tag to the resource in the AWS Console and re-trigger the workflow.
 
-	### ----> update .tf files
-	
-	## NOTE: The plan command below is run against the remote state in 
-	## terraform cloud, not the new combined state that is local on the 
-	## filesystem, so all the imported resources will show up as being added.  
-	## Our goal here is to get a successful plan.  We will plan against the 
-	## combined state later.
-	
+- **Error: Invalid Resource List Format**  
+  - **Cause**: The resource list input is incorrectly formatted (e.g., includes spaces or uses `*`).  
+  - **Solution**: Ensure the list is comma-separated with no spaces (e.g., `vpc,s3`) and avoid using the wildcard (`*`).
+
+- **Error: Workflow Did Not Execute**  
+  - **Cause**: The workflow was triggered without an active pull request or on the wrong branch.  
+  - **Solution**: Ensure the workflow is triggered within an open PR and that the correct branch is selected.
+
+---
+
+**Next Steps After Workflow Completion**:  
+- If the workflow completes successfully, proceed to [Fix Configuration](#fix-configuration) to address any issues in the generated Terraform configuration.
+- If the workflow fails, review the logs and address any reported errors (e.g., missing `Name` tags or invalid inputs).
+
+### Fix configuration
+
+If the initial terraform plan detects issues, resolve them as follows:
+
+1. **Pull the latest changes**
+ 
+ ```bash
+	git pull --rebase origin <branch_name>
+	cd <Workspace_Path>
+ ```
+
+1. **Make Changes**  
+
+   Update the generated .tf files to address configuration issues.
+      
+1. **Local Validation and Planning**
+
+   Developers can optionally run validation and planning locally to ensure their changes are syntactically correct and do not introduce unintended changes:
+
+   ```bash
+   terraform init
+	terraform validate
 	terraform plan -var-file="env/prod.tfvars"
-```
+	```
+1. **Push Fixed Configuration**
 
-### 6. Push fixed configuration to repository
-
-```bash
-cd <Project_home>
+   Once the configuration issues are resolved:
+   
+   ```bash
 git add .
-git commit -m "fixed terraform configuration for <TAG_NAME>"
-git push origin <BRANCH_NAME>
-```
+git commit -m "Fixed Terraform configuration for <TAG_NAME>"
+git push origin <branch_name>
+	```
 
-### 6. Request a Review from a peer
+1. **Request Peer Review**
 
-### 7. Sync and Plan
+	Request a peer review for the PR to ensure the changes meet standards and requirements.   
 
-We are now ready to sync the new state to terraform cloud.
+1. **Sync and Plan**
 
-In the GitHub repository, navigate to **Actions** and manually trigger the [2 - Sync state and plan](../../.github/workflows/sync_and_plan.yml) workflow designed for importing resources. When prompted, provide the necessary input:
+	Manually trigger the [2 - Sync state and plan](../../.github/workflows/sync_and_plan.yml) Workflow in GitHub Actions. Provide the following input:
 
+	•	**Workspace Path:** Select the Terraform workspace path corresponding to the resource’s environment.
 
-- **Workspace Path**: Select the Terraform workspace path that matches the resource’s environment.  This is a select list, so choose the appropriate value for the account your are importing from.
+	**Workflow Actions**:
 
-The workflow will perform the follow tasks:
+	•	Sync the new state with Terraform Cloud.
 
-- **Push the new state to terraform**
-- **Run a terraform plan**
+	•	Run a terraform plan to verify the imported state.  
+  
+1. **Merge the Pull Requset**
 
+Once all workflows pass and the review is approved, merge the PR into the main branch to finalize the import process.
 
-
-### 8. Merge
