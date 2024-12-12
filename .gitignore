@@ -45,3 +45,10 @@ generated/
 .envrc
 
 Pipfile
+
+.ci/
+.imported_repo/
+.terraform.d/
+*.tfstate
+destination_terraform.*
+.terraform.lock.hcl

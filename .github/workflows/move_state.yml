@@ -3,6 +3,14 @@ name: Get Terraform Cloud Workspace State
 on:
   workflow_dispatch: # Allows manual triggering of the workflow
     inputs:
+      worspace_path:
+        description: 'The path to the workspace to import into'
+        required: true
+        type: choice
+        options:
+          - 'Please choose a workspace'
+          - accounts/SBOX-9394/baseline/baseline-workspace
+        default: 'Please choose a workspace'      
       organization:
         description: "Terraform Cloud organization name"
         required: true
@@ -11,10 +19,10 @@ on:
       #   description: "Terraform Cloud project name"
       #   required: true
       #   default: "nis-aws"
-      workspace:
+      workspace-to-import:
         description: "Terraform Cloud workspace name"
         required: true
-        default: "NIS-AWS-Accounts-SBOX-9394-baseline-workspace"
+        default: "tf-prefix-list"
 
 jobs:
   retrieve-state:
@@ -34,45 +42,126 @@ jobs:
       - name: Install jq
         run: sudo apt-get install -y jq
 
-      # - name: Retrieve Project ID
-      #   id: project
-      #   run: |
-      #     PROJECTS=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/organizations/${{ github.event.inputs.organization }}/projects")
-      #     PROJECT_ID=$(echo "$PROJECTS" | jq -r --arg PROJECT_NAME "${{ github.event.inputs.project }}" '.data[] | select(.attributes.name == $PROJECT_NAME) | .id')
-      #     if [ -z "$PROJECT_ID" ]; then
-      #       echo "Error: Project '${{ github.event.inputs.project }}' not found in organization '${{ github.event.inputs.organization }}'."
-      #       exit 1
-      #     fi
-      #     echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
-
       - name: Retrieve Workspace ID
         id: workspace
         run: |
-          WORKSPACES=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/organizations/${{ github.event.inputs.organization }}/workspaces/${{ github.event.inputs.workspace }}")
+          WORKSPACES=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/organizations/${{ github.event.inputs.organization }}/workspaces/${{ github.event.inputs.workspace-to-import }}")
           echo $WORKSPACES
           WORKSPACE_ID=$(echo "$WORKSPACES" | jq -r '.data.id')
           if [ -z "$WORKSPACE_ID" ]; then
-            echo "Error: Workspace '${{ github.event.inputs.workspace }}' not found in project '${{ github.event.inputs.project }}'."
+            echo "Error: Workspace '${{ github.event.inputs.workspace-to-import }}' not found in project '${{ github.event.inputs.project }}'."
             exit 1
           fi
           echo $WORKSPACE_ID
           echo "WORKSPACE_ID=$WORKSPACE_ID" >> $GITHUB_ENV
 
       - name: Retrieve Workspace State
+        working-directory: "${{ github.event.inputs.worspace_path }}"      
         run: |
           echo "Checking state for workspace ID: ${{ env.WORKSPACE_ID }}..."
-          STATE_VERSION=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" "https://app.terraform.io/api/v2/workspaces/${{ env.WORKSPACE_ID }}/current-state-version")
-          
+          STATE_VERSION=$(curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" --location "https://app.terraform.io/api/v2/workspaces/${{ env.WORKSPACE_ID }}/current-state-version")
+          echo "**********CURRENT STATE VERSION"
           echo $STATE_VERSION
-          
+          echo "********************************"
           # Check if the workspace has state
-          DOWNLOAD_URL=$(echo "$STATE_VERSION" | jq -r '.data.attributes.hosted-state-download-url // empty')
+          DOWNLOAD_URL=$(echo "$STATE_VERSION" | jq -r '.data.attributes["hosted-state-download-url"] // empty')
+          echo "**********DOWNLOAD_URL"
+          echo $DOWNLOAD_URL
+          echo "********************************"
           
           if [ -z "$DOWNLOAD_URL" ]; then
-            echo "No state available for workspace '${{ github.event.inputs.workspace }}'."
+            echo "No state available for workspace '${{ github.event.inputs.workspace-to-import }}'."
             echo "State file not downloaded."
           else
+            mkdir .ci
             echo "State found. Downloading state file..."
-            curl -s -o "${{ github.event.inputs.workspace }}_state.tfstate" "$DOWNLOAD_URL"
-            echo "State file saved as '${{ github.event.inputs.workspace }}_state.tfstate'."
+            curl -s --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" --location "$DOWNLOAD_URL" -o ".ci/${{ github.event.inputs.workspace-to-import }}_state.tfstate"
+            echo "State file saved as '.ci/${{ github.event.inputs.workspace-to-import }}_state.tfstate'."
           fi
+
+      - name: Show State to import
+        working-directory: "${{ github.event.inputs.worspace_path }}"      
+        run: |
+          cat .ci/${{ github.event.inputs.workspace-to-import }}_state.tfstate
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
+
+      # Run terraform init to setup
+      - name: Run terraform init
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform init
+
+      - name: List the resources to be imported
+        working-directory: "${{ github.event.inputs.worspace_path }}/.ci"
+        run: |
+            terraform state list -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate > ${{ github.event.inputs.workspace-to-import }}_resources.txt
+            cat ${{ github.event.inputs.workspace-to-import }}_resources.txt
+
+      - name: Pull the current terraform state from terraform cloud
+        working-directory: ${{ github.event.inputs.worspace_path }}
+        run: |
+          terraform state pull > destination_terraform.tfstate
+
+      - name: Move each of the imported resources into the current state
+        working-directory: "${{ github.event.inputs.worspace_path }}"
+        run: |
+            IFS=' '
+            while IFS= read -r resource; do
+            terraform state mv -state=.ci/${{ github.event.inputs.workspace-to-import }}_state.tfstate -state-out=destination_terraform.tfstate "$resource" "$resource"
+            done < .ci/${{ github.event.inputs.workspace-to-import }}_resources.txt
+
+      - name: Export outputs from source state
+        working-directory: "${{ github.event.inputs.worspace_path }}/.ci"
+        run: |
+          terraform output -state=${{ github.event.inputs.workspace-to-import }}_state.tfstate -json | jq '{outputs: .}' > outputs.json
+
+      - name: Inject outputs into destination state
+        working-directory: "${{ github.event.inputs.worspace_path }}"
+        run: |
+          ls -al
+          jq --slurpfile outputs .ci/outputs.json '.outputs += $outputs[0].outputs' destination_terraform.tfstate > destination_terraform_updated.tfstate  
+          mv destination_terraform_updated.tfstate destination_terraform.tfstate
+
+      - name: Show the state that was imported ( should be empty now )
+        working-directory: "${{ github.event.inputs.worspace_path }}"
+        run: |
+            cat .ci/${{ github.event.inputs.workspace-to-import }}_state.tfstate
+
+      - name: Show the new destination state ( should include all the resources )
+        working-directory: "${{ github.event.inputs.worspace_path }}"
+        run: |
+          rm -rf .ci  
+          cat destination_terraform.tfstate 
+
+      - name: Checkout the source repository
+        uses: actions/checkout@v3
+        with:
+          repository: "ontargetcomputing/tf-prefix-list"
+          path: .imported_repo
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Show the imported repo
+        run: |
+          find .imported_repo -type f
+
+      - name: Copy Terraform files
+        run: |
+          shopt -s globstar
+          mkdir -p ${{ github.event.inputs.worspace_path }}/${{ github.event.inputs.workspace-to-import }}
+          cp -r .imported_repo/**/*.tf ./${{ github.event.inputs.worspace_path }}/${{ github.event.inputs.workspace-to-import }}/
+
+      - name: Commit and push Terraform files
+        run: |
+          rm -rf .imported_repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Add Terraform files from imported repository - still need to refactor"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
